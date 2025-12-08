@@ -12,6 +12,24 @@ find_package(rclcpp REQUIRED)
 # find_package(gazebo_plugins REQUIRED)
 find_package(humanoid_description REQUIRED)
 
+# Install config files
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
+  FILES_MATCHING PATTERN "*.yaml"
+)
+
+# Install launch files
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}/launch
+  FILES_MATCHING PATTERN "*.launch.py"
+)
+
+# Install world files
+install(DIRECTORY worlds/
+  DESTINATION share/${PROJECT_NAME}/worlds
+  FILES_MATCHING PATTERN "*.sdf" PATTERN "*.world"
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
