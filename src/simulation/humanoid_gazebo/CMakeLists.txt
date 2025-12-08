@@ -8,8 +8,8 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(gazebo_ros REQUIRED)
-find_package(gazebo_plugins REQUIRED)
+# find_package(gazebo_ros REQUIRED)
+# find_package(gazebo_plugins REQUIRED)
 find_package(humanoid_description REQUIRED)
 
 if(BUILD_TESTING)
