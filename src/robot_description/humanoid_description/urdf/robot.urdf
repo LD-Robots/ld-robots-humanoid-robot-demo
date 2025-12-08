@@ -170,7 +170,7 @@
     <visual name="KD_B_102B_TORSO_BTM_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_B_102B_TORSO_BTM_geometry">
-        <mesh filename="meshes/visual/KD_B_102B_TORSO_BTM.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KD_B_102B_TORSO_BTM.stl"/>
       </geometry>
       <material name="KD_B_102B_TORSO_BTM_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -179,7 +179,7 @@
     <collision name="KD_B_102B_TORSO_BTM.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_B_102B_TORSO_BTM_collision_geometry">
-        <mesh filename="meshes/collision/KD_B_102B_TORSO_BTM.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KD_B_102B_TORSO_BTM.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KD_B_102B_TORSO_BTM_inertial">
@@ -192,7 +192,7 @@
     <visual name="KD_D_102L_L_Hip_Yoke_Drive_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_D_102L_L_Hip_Yoke_Drive_geometry">
-        <mesh filename="meshes/visual/KD_D_102L_L_Hip_Yoke_Drive.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KD_D_102L_L_Hip_Yoke_Drive.stl"/>
       </geometry>
       <material name="KD_D_102L_L_Hip_Yoke_Drive_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -201,7 +201,7 @@
     <collision name="KD_D_102L_L_Hip_Yoke_Drive.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_D_102L_L_Hip_Yoke_Drive_collision_geometry">
-        <mesh filename="meshes/collision/KD_D_102L_L_Hip_Yoke_Drive.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KD_D_102L_L_Hip_Yoke_Drive.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KD_D_102L_L_Hip_Yoke_Drive_inertial">
@@ -214,7 +214,7 @@
     <visual name="KC_C_101R_ShldYokeDrive_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KC_C_101R_ShldYokeDrive_geometry">
-        <mesh filename="meshes/visual/KC_C_101R_ShldYokeDrive.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KC_C_101R_ShldYokeDrive.stl"/>
       </geometry>
       <material name="KC_C_101R_ShldYokeDrive_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -223,7 +223,7 @@
     <collision name="KC_C_101R_ShldYokeDrive.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KC_C_101R_ShldYokeDrive_collision_geometry">
-        <mesh filename="meshes/collision/KC_C_101R_ShldYokeDrive.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KC_C_101R_ShldYokeDrive.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KC_C_101R_ShldYokeDrive_inertial">
@@ -236,7 +236,7 @@
     <visual name="KD_C_101L_ShldYokeDrive_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_C_101L_ShldYokeDrive_geometry">
-        <mesh filename="meshes/visual/KD_C_101L_ShldYokeDrive.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KD_C_101L_ShldYokeDrive.stl"/>
       </geometry>
       <material name="KD_C_101L_ShldYokeDrive_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -245,7 +245,7 @@
     <collision name="KD_C_101L_ShldYokeDrive.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_C_101L_ShldYokeDrive_collision_geometry">
-        <mesh filename="meshes/collision/KD_C_101L_ShldYokeDrive.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KD_C_101L_ShldYokeDrive.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KD_C_101L_ShldYokeDrive_inertial">
@@ -258,7 +258,7 @@
     <visual name="L_Hip_Roll_RS03_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="L_Hip_Roll_RS03_geometry">
-        <mesh filename="meshes/visual/L_Hip_Roll_RS03.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/L_Hip_Roll_RS03.stl"/>
       </geometry>
       <material name="L_Hip_Roll_RS03_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -267,7 +267,7 @@
     <collision name="L_Hip_Roll_RS03.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="L_Hip_Roll_RS03_collision_geometry">
-        <mesh filename="meshes/collision/L_Hip_Roll_RS03.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/L_Hip_Roll_RS03.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="L_Hip_Roll_RS03_inertial">
@@ -280,7 +280,7 @@
     <visual name="KD_D_102R_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_D_102R_geometry">
-        <mesh filename="meshes/visual/KD_D_102R.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KD_D_102R.stl"/>
       </geometry>
       <material name="KD_D_102R_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -289,7 +289,7 @@
     <collision name="KD_D_102R.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_D_102R_collision_geometry">
-        <mesh filename="meshes/collision/KD_D_102R.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KD_D_102R.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KD_D_102R_inertial">
@@ -302,7 +302,7 @@
     <visual name="RS03_visual_3">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="RS03_geometry_3">
-        <mesh filename="meshes/visual/RS03_3.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/RS03_3.stl"/>
       </geometry>
       <material name="RS03_material_3">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -311,7 +311,7 @@
     <collision name="RS03.collision_3">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="RS03_collision_geometry_3">
-        <mesh filename="meshes/collision/RS03_3.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/RS03_3.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="RS03_inertial_3">
@@ -324,7 +324,7 @@
     <visual name="imu_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="imu_geometry">
-        <mesh filename="meshes/visual/imu.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/imu.stl"/>
       </geometry>
       <material name="imu_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -333,7 +333,7 @@
     <collision name="imu.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="imu_collision_geometry">
-        <mesh filename="meshes/collision/imu.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/imu.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="imu_inertial">
@@ -346,7 +346,7 @@
     <visual name="RS03_visual_4">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="RS03_geometry_4">
-        <mesh filename="meshes/visual/RS03_4.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/RS03_4.stl"/>
       </geometry>
       <material name="RS03_material_4">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -355,7 +355,7 @@
     <collision name="RS03.collision_4">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="RS03_collision_geometry_4">
-        <mesh filename="meshes/collision/RS03_4.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/RS03_4.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="RS03_inertial_4">
@@ -368,7 +368,7 @@
     <visual name="L_Hip_Roll_RS03_visual_2">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="L_Hip_Roll_RS03_geometry_2">
-        <mesh filename="meshes/visual/L_Hip_Roll_RS03_2.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/L_Hip_Roll_RS03_2.stl"/>
       </geometry>
       <material name="L_Hip_Roll_RS03_material_2">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -377,7 +377,7 @@
     <collision name="L_Hip_Roll_RS03.collision_2">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="L_Hip_Roll_RS03_collision_geometry_2">
-        <mesh filename="meshes/collision/L_Hip_Roll_RS03_2.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/L_Hip_Roll_RS03_2.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="L_Hip_Roll_RS03_inertial_2">
@@ -390,7 +390,7 @@
     <visual name="KD_D_301L_L_Femur_Lower_Drive_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_D_301L_L_Femur_Lower_Drive_geometry">
-        <mesh filename="meshes/visual/KD_D_301L_L_Femur_Lower_Drive.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KD_D_301L_L_Femur_Lower_Drive.stl"/>
       </geometry>
       <material name="KD_D_301L_L_Femur_Lower_Drive_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -399,7 +399,7 @@
     <collision name="KD_D_301L_L_Femur_Lower_Drive.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_D_301L_L_Femur_Lower_Drive_collision_geometry">
-        <mesh filename="meshes/collision/KD_D_301L_L_Femur_Lower_Drive.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KD_D_301L_L_Femur_Lower_Drive.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KD_D_301L_L_Femur_Lower_Drive_inertial">
@@ -412,7 +412,7 @@
     <visual name="KC_C_202R_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KC_C_202R_geometry">
-        <mesh filename="meshes/visual/KC_C_202R.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KC_C_202R.stl"/>
       </geometry>
       <material name="KC_C_202R_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -421,7 +421,7 @@
     <collision name="KC_C_202R.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KC_C_202R_collision_geometry">
-        <mesh filename="meshes/collision/KC_C_202R.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KC_C_202R.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KC_C_202R_inertial">
@@ -434,7 +434,7 @@
     <visual name="KD_C_301L_LowerBicepDrive_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_C_301L_LowerBicepDrive_geometry">
-        <mesh filename="meshes/visual/KD_C_301L_LowerBicepDrive.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KD_C_301L_LowerBicepDrive.stl"/>
       </geometry>
       <material name="KD_C_301L_LowerBicepDrive_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -443,7 +443,7 @@
     <collision name="KD_C_301L_LowerBicepDrive.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_C_301L_LowerBicepDrive_collision_geometry">
-        <mesh filename="meshes/collision/KD_C_301L_LowerBicepDrive.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KD_C_301L_LowerBicepDrive.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KD_C_301L_LowerBicepDrive_inertial">
@@ -456,7 +456,7 @@
     <visual name="KD_D_301R_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_D_301R_geometry">
-        <mesh filename="meshes/visual/KD_D_301R.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KD_D_301R.stl"/>
       </geometry>
       <material name="KD_D_301R_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -465,7 +465,7 @@
     <collision name="KD_D_301R.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_D_301R_collision_geometry">
-        <mesh filename="meshes/collision/KD_D_301R.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KD_D_301R.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KD_D_301R_inertial">
@@ -478,7 +478,7 @@
     <visual name="KD_D_401L_L_Shin_Drive_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_D_401L_L_Shin_Drive_geometry">
-        <mesh filename="meshes/visual/KD_D_401L_L_Shin_Drive.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KD_D_401L_L_Shin_Drive.stl"/>
       </geometry>
       <material name="KD_D_401L_L_Shin_Drive_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -487,7 +487,7 @@
     <collision name="KD_D_401L_L_Shin_Drive.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_D_401L_L_Shin_Drive_collision_geometry">
-        <mesh filename="meshes/collision/KD_D_401L_L_Shin_Drive.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KD_D_401L_L_Shin_Drive.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KD_D_401L_L_Shin_Drive_inertial">
@@ -500,7 +500,7 @@
     <visual name="KC_C_401R_R_UpForearmDrive_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KC_C_401R_R_UpForearmDrive_geometry">
-        <mesh filename="meshes/visual/KC_C_401R_R_UpForearmDrive.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KC_C_401R_R_UpForearmDrive.stl"/>
       </geometry>
       <material name="KC_C_401R_R_UpForearmDrive_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -509,7 +509,7 @@
     <collision name="KC_C_401R_R_UpForearmDrive.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KC_C_401R_R_UpForearmDrive_collision_geometry">
-        <mesh filename="meshes/collision/KC_C_401R_R_UpForearmDrive.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KC_C_401R_R_UpForearmDrive.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KC_C_401R_R_UpForearmDrive_inertial">
@@ -522,7 +522,7 @@
     <visual name="KC_C_401L_Up_Forearm_Drive_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KC_C_401L_Up_Forearm_Drive_geometry">
-        <mesh filename="meshes/visual/KC_C_401L_Up_Forearm_Drive.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KC_C_401L_Up_Forearm_Drive.stl"/>
       </geometry>
       <material name="KC_C_401L_Up_Forearm_Drive_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -531,7 +531,7 @@
     <collision name="KC_C_401L_Up_Forearm_Drive.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KC_C_401L_Up_Forearm_Drive_collision_geometry">
-        <mesh filename="meshes/collision/KC_C_401L_Up_Forearm_Drive.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KC_C_401L_Up_Forearm_Drive.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KC_C_401L_Up_Forearm_Drive_inertial">
@@ -544,7 +544,7 @@
     <visual name="LFootBushing_GPF_1517_12_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="LFootBushing_GPF_1517_12_geometry">
-        <mesh filename="meshes/visual/LFootBushing_GPF_1517_12.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/LFootBushing_GPF_1517_12.stl"/>
       </geometry>
       <material name="LFootBushing_GPF_1517_12_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -553,7 +553,7 @@
     <collision name="LFootBushing_GPF_1517_12.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="LFootBushing_GPF_1517_12_collision_geometry">
-        <mesh filename="meshes/collision/LFootBushing_GPF_1517_12.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/LFootBushing_GPF_1517_12.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="LFootBushing_GPF_1517_12_inertial">
@@ -566,7 +566,7 @@
     <visual name="KD_D_401R_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_D_401R_geometry">
-        <mesh filename="meshes/visual/KD_D_401R.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/KD_D_401R.stl"/>
       </geometry>
       <material name="KD_D_401R_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -575,7 +575,7 @@
     <collision name="KD_D_401R.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="KD_D_401R_collision_geometry">
-        <mesh filename="meshes/collision/KD_D_401R.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/KD_D_401R.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="KD_D_401R_inertial">
@@ -588,7 +588,7 @@
     <visual name="RFootBushing_GPF_1517_12_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="RFootBushing_GPF_1517_12_geometry">
-        <mesh filename="meshes/visual/RFootBushing_GPF_1517_12.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/RFootBushing_GPF_1517_12.stl"/>
       </geometry>
       <material name="RFootBushing_GPF_1517_12_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -597,7 +597,7 @@
     <collision name="RFootBushing_GPF_1517_12.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="RFootBushing_GPF_1517_12_collision_geometry">
-        <mesh filename="meshes/collision/RFootBushing_GPF_1517_12.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/RFootBushing_GPF_1517_12.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="RFootBushing_GPF_1517_12_inertial">
@@ -610,7 +610,7 @@
     <visual name="PRT0001_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="PRT0001_geometry">
-        <mesh filename="meshes/visual/PRT0001.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/PRT0001.stl"/>
       </geometry>
       <material name="PRT0001_material">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -619,7 +619,7 @@
     <collision name="PRT0001.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="PRT0001_collision_geometry">
-        <mesh filename="meshes/collision/PRT0001.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/PRT0001.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="PRT0001_inertial">
@@ -632,7 +632,7 @@
     <visual name="PRT0001_visual_2">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="PRT0001_geometry_2">
-        <mesh filename="meshes/visual/PRT0001_2.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/PRT0001_2.stl"/>
       </geometry>
       <material name="PRT0001_material_2">
         <color rgba="0.121569 0.121569 0.121569 1"/>
@@ -641,7 +641,7 @@
     <collision name="PRT0001.collision_2">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="PRT0001_collision_geometry_2">
-        <mesh filename="meshes/collision/PRT0001_2.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/collision/PRT0001_2.collision.stl"/>
       </geometry>
     </collision>
     <inertial name="PRT0001_inertial_2">
