@@ -6,9 +6,9 @@ Usage:
     python3 extract_urdf_components.py <input_urdf> <output_joints_xacro> <output_links_xacro>
 
 Example:
-    python3 extract_urdf_components.py \\
-        src/robot_description/humanoid_description/urdf/humanoid_arm_5dof.urdf \\
-        src/robot_description/humanoid_description/urdf/joints/arm_joints.xacro \\
+    python3 extract_urdf_components.py \
+        src/robot_description/humanoid_description/urdf/humanoid_arm_5dof.urdf \
+        src/robot_description/humanoid_description/urdf/joints/arm_joints.xacro \
         src/robot_description/humanoid_description/urdf/links/arm_links.xacro
 """
 
@@ -112,9 +112,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Example:
-    python3 extract_urdf_components.py \\
-        src/robot_description/humanoid_description/urdf/humanoid_arm_5dof.urdf \\
-        src/robot_description/humanoid_description/urdf/joints/arm_joints.xacro \\
+    python3 extract_urdf_components.py \
+        src/robot_description/humanoid_description/urdf/humanoid_arm_5dof.urdf \
+        src/robot_description/humanoid_description/urdf/joints/arm_joints.xacro \
         src/robot_description/humanoid_description/urdf/links/arm_links.xacro
         """
     )
