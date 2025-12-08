@@ -1,0 +1,170 @@
+# Initial/default joint positions for humanoid robot
+# All values in radians
+
+# ==================== STANDING POSE ====================
+standing_pose:
+  # Head
+  neck_yaw: 0.0
+  neck_pitch: 0.0
+
+  # Torso
+  torso_yaw: 0.0
+  torso_pitch: 0.0
+  torso_roll: 0.0
+
+  # Left Arm
+  left_shoulder_pitch: 0.0
+  left_shoulder_roll: 0.3   # Slightly away from body
+  left_shoulder_yaw: 0.0
+  left_elbow_pitch: 0.5     # Slight bend
+  left_elbow_yaw: 0.0
+  left_wrist_pitch: 0.0
+  left_wrist_roll: 0.0
+
+  # Right Arm
+  right_shoulder_pitch: 0.0
+  right_shoulder_roll: -0.3
+  right_shoulder_yaw: 0.0
+  right_elbow_pitch: 0.5
+  right_elbow_yaw: 0.0
+  right_wrist_pitch: 0.0
+  right_wrist_roll: 0.0
+
+  # Left Leg
+  left_hip_yaw: 0.0
+  left_hip_roll: 0.0
+  left_hip_pitch: 0.0
+  left_knee_pitch: 0.0
+  left_ankle_pitch: 0.0
+  left_ankle_roll: 0.0
+
+  # Right Leg
+  right_hip_yaw: 0.0
+  right_hip_roll: 0.0
+  right_hip_pitch: 0.0
+  right_knee_pitch: 0.0
+  right_ankle_pitch: 0.0
+  right_ankle_roll: 0.0
+
+# ==================== SITTING POSE ====================
+sitting_pose:
+  # Head
+  neck_yaw: 0.0
+  neck_pitch: 0.0
+
+  # Torso
+  torso_yaw: 0.0
+  torso_pitch: 0.2
+  torso_roll: 0.0
+
+  # Left Arm
+  left_shoulder_pitch: 0.5
+  left_shoulder_roll: 0.3
+  left_shoulder_yaw: 0.0
+  left_elbow_pitch: 1.0
+  left_elbow_yaw: 0.0
+  left_wrist_pitch: 0.0
+  left_wrist_roll: 0.0
+
+  # Right Arm
+  right_shoulder_pitch: 0.5
+  right_shoulder_roll: -0.3
+  right_shoulder_yaw: 0.0
+  right_elbow_pitch: 1.0
+  right_elbow_yaw: 0.0
+  right_wrist_pitch: 0.0
+  right_wrist_roll: 0.0
+
+  # Left Leg
+  left_hip_yaw: 0.0
+  left_hip_roll: 0.0
+  left_hip_pitch: 1.57  # 90 degrees
+  left_knee_pitch: 1.57
+  left_ankle_pitch: 0.0
+  left_ankle_roll: 0.0
+
+  # Right Leg
+  right_hip_yaw: 0.0
+  right_hip_roll: 0.0
+  right_hip_pitch: 1.57
+  right_knee_pitch: 1.57
+  right_ankle_pitch: 0.0
+  right_ankle_roll: 0.0
+
+# ==================== HOME POSE (FOR CALIBRATION) ====================
+home_pose:
+  # All joints at zero
+  neck_yaw: 0.0
+  neck_pitch: 0.0
+  torso_yaw: 0.0
+  torso_pitch: 0.0
+  torso_roll: 0.0
+  left_shoulder_pitch: 0.0
+  left_shoulder_roll: 0.0
+  left_shoulder_yaw: 0.0
+  left_elbow_pitch: 0.0
+  left_elbow_yaw: 0.0
+  left_wrist_pitch: 0.0
+  left_wrist_roll: 0.0
+  right_shoulder_pitch: 0.0
+  right_shoulder_roll: 0.0
+  right_shoulder_yaw: 0.0
+  right_elbow_pitch: 0.0
+  right_elbow_yaw: 0.0
+  right_wrist_pitch: 0.0
+  right_wrist_roll: 0.0
+  left_hip_yaw: 0.0
+  left_hip_roll: 0.0
+  left_hip_pitch: 0.0
+  left_knee_pitch: 0.0
+  left_ankle_pitch: 0.0
+  left_ankle_roll: 0.0
+  right_hip_yaw: 0.0
+  right_hip_roll: 0.0
+  right_hip_pitch: 0.0
+  right_knee_pitch: 0.0
+  right_ankle_pitch: 0.0
+  right_ankle_roll: 0.0
+
+# ==================== READY POSE (FOR OPERATION) ====================
+ready_pose:
+  # Head
+  neck_yaw: 0.0
+  neck_pitch: -0.2  # Looking slightly down
+
+  # Torso
+  torso_yaw: 0.0
+  torso_pitch: 0.0
+  torso_roll: 0.0
+
+  # Left Arm (ready for manipulation)
+  left_shoulder_pitch: 0.7
+  left_shoulder_roll: 0.5
+  left_shoulder_yaw: 0.0
+  left_elbow_pitch: 1.2
+  left_elbow_yaw: 0.0
+  left_wrist_pitch: 0.0
+  left_wrist_roll: 0.0
+
+  # Right Arm (ready for manipulation)
+  right_shoulder_pitch: 0.7
+  right_shoulder_roll: -0.5
+  right_shoulder_yaw: 0.0
+  right_elbow_pitch: 1.2
+  right_elbow_yaw: 0.0
+  right_wrist_pitch: 0.0
+  right_wrist_roll: 0.0
+
+  # Legs (stable stance)
+  left_hip_yaw: 0.0
+  left_hip_roll: 0.05
+  left_hip_pitch: -0.1
+  left_knee_pitch: 0.2
+  left_ankle_pitch: -0.1
+  left_ankle_roll: -0.05
+  right_hip_yaw: 0.0
+  right_hip_roll: -0.05
+  right_hip_pitch: -0.1
+  right_knee_pitch: 0.2
+  right_ankle_pitch: -0.1
+  right_ankle_roll: 0.05
