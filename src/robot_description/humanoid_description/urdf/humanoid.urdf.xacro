@@ -7,7 +7,8 @@
   <xacro:include filename="$(find humanoid_description)/xacro/common/materials.xacro"/>
   <xacro:include filename="$(find humanoid_description)/xacro/common/inertials.xacro"/>
   <xacro:include filename="$(find humanoid_description)/xacro/common/transmission.xacro"/>
-
+  <xacro:include filename="$(find humanoid_description)/xacro/joints/robot_joints.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/links/robot_linksxacro"/>
   <!-- Robot components -->
   <!-- TODO: Uncomment as xacro files are created
   <xacro:include filename="$(find humanoid_description)/xacro/torso/torso.xacro"/>
@@ -39,12 +40,12 @@
   <!-- ==================== BASE LINK ==================== -->
 
   <!-- Base footprint (on ground) -->
-  <link name="base_footprint">
+  <!-- <link name="base_footprint">
     <xacro:point_mass m="0.001"/>
-  </link>
+  </link> -->
 
   <!-- Base link (torso base) -->
-  <link name="base_link">
+  <!-- <link name="base_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
@@ -58,18 +59,18 @@
       <geometry>
         <box size="${torso_depth} ${torso_width} ${torso_height}"/>
       </geometry>
-    </collision>
+    </collision> -->
 
     <!-- TODO: Replace with actual inertial values -->
-    <xacro:box_inertia m="10.0" x="${torso_depth}" y="${torso_width}" z="${torso_height}"/>
-  </link>
+    <!-- <xacro:box_inertia m="10.0" x="${torso_depth}" y="${torso_width}" z="${torso_height}"/>
+  </link> -->
 
   <!-- Base footprint to base link joint -->
-  <joint name="base_footprint_joint" type="fixed">
+  <!-- <joint name="base_footprint_joint" type="fixed">
     <parent link="base_footprint"/>
     <child link="base_link"/>
     <origin xyz="0 0 0.5" rpy="0 0 0"/>
-  </joint>
+  </joint> -->
 
   <!-- ==================== COMPONENT INSTANTIATION ==================== -->
 
