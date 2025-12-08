@@ -1,5 +1,5 @@
 #!/bin/bash
-# ROS 2 LDR Humanoid Arm System - Terminal Shortcuts
+# ROS 2 LD Robots Humanoid Robot Demo - Terminal Shortcuts
 # Source this file: source setup_shortcuts.bash
 
 # Get project root directory
@@ -50,33 +50,37 @@ alias r2cs='ros2 service call /controller_manager/list_controllers controller_ma
 # ============================================================================
 
 # Navigate to project
-alias arm_home='cd '"$PROJECT_ROOT"
+alias h_home='cd '"$PROJECT_ROOT"
 
 # Launch shortcuts
-alias arm_gui='ros2 run arm_gui_tools full_system_launcher'
-alias arm_full='ros2 launch arm_system_bringup full_system.launch.py'
-alias arm_moveit='ros2 launch arm_system_bringup moveit_gazebo.launch.py'
-alias arm_gazebo='ros2 launch arm_gazebo arm_world.launch.py'
-alias arm_rviz='rviz2 -d $(ros2 pkg prefix arm_perception)/share/arm_perception/config/deep_camera.rviz'
+alias h_gui='ros2 run gui_tools full_system_launcher'
+alias h_full='ros2 launch humanoid_bringup full_system.launch.py'
+alias h_sim='ros2 launch humanoid_bringup simulation.launch.py'
+alias h_hw='ros2 launch humanoid_bringup hardware.launch.py'
+alias h_minimal='ros2 launch humanoid_bringup minimal.launch.py'
+alias h_moveit='ros2 launch humanoid_moveit_config demo.launch.py'
+alias h_gazebo='ros2 launch humanoid_gazebo gazebo.launch.py'
+alias h_rviz='ros2 launch humanoid_description display.launch.py'
 
 # Launch with world selection
-arm_launch() {
+h_launch() {
     if [ -z "$1" ]; then
-        echo "Usage: arm_launch <world_name>"
-        echo "Available worlds: lab.sdf, obstacle_course.sdf, pick_place.sdf, manipulation_demo.sdf"
+        echo "Usage: h_launch <world_name>"
+        echo "Available worlds: empty.world, lab.world, outdoor.world, stairs.world"
         return 1
     fi
-    ros2 launch arm_system_bringup full_system.launch.py simulation_world:="$1"
+    ros2 launch humanoid_gazebo simulation.launch.py world:="$1"
 }
 
 # Test shortcuts
-alias arm_test='ros2 run arm_control example.py'
-alias arm_test_simple='ros2 run arm_control test_simple.py'
+alias h_test='ros2 run demos simple_walk'
+alias h_test_balance='ros2 run demos test_balance'
+alias h_test_manipulation='ros2 run demos pick_place_demo'
 
 # Controller monitoring
-alias arm_controllers='ros2 control list_controllers'
-alias arm_joints='ros2 topic echo /joint_states'
-alias arm_status='echo "=== Controllers ===" && ros2 control list_controllers && echo -e "\n=== Joint States ===" && ros2 topic hz /joint_states --once'
+alias h_controllers='ros2 control list_controllers'
+alias h_joints='ros2 topic echo /joint_states'
+alias h_status='echo "=== Controllers ===" && ros2 control list_controllers && echo -e "\n=== Joint States ===" && ros2 topic hz /joint_states --once'
 
 # Gazebo shortcuts
 alias gz_gui='gz sim -g'
@@ -88,31 +92,31 @@ alias gz_models='gz model -l'
 # ============================================================================
 
 # Launch RQT tools
-alias arm_rqt='rqt'
-alias arm_rqt_graph='rqt_graph'
-alias arm_rqt_plot='rqt_plot'
-alias arm_rqt_console='rqt_console'
-alias arm_rqt_reconfigure='rqt_reconfigure'
-alias arm_rqt_image='rqt_image_view'
-alias arm_rqt_tf='rqt_tf_tree'
-alias arm_rqt_bag='rqt_bag'
+alias h_rqt='rqt'
+alias h_rqt_graph='rqt_graph'
+alias h_rqt_plot='rqt_plot'
+alias h_rqt_console='rqt_console'
+alias h_rqt_reconfigure='rqt_reconfigure'
+alias h_rqt_image='rqt_image_view'
+alias h_rqt_tf='rqt_tf_tree'
+alias h_rqt_bag='rqt_bag'
 
 # PlotJuggler (superior plotting tool)
-alias arm_plotjuggler='plotjuggler'
-alias arm_pj='plotjuggler'  # Short alias
+alias h_plotjuggler='plotjuggler'
+alias h_pj='plotjuggler'  # Short alias
 
 # PlotJuggler with ROS 2 streaming
-arm_plotjuggler_live() {
+h_plotjuggler_live() {
     echo "Starting PlotJuggler with ROS 2 streaming..."
     echo "In PlotJuggler: Streaming → Start ROS2 Topic Subscriber"
     plotjuggler &
 }
 
 # PlotJuggler with saved layout
-arm_plotjuggler_arm() {
-    LAYOUT_FILE="$PROJECT_ROOT/config/plotjuggler_arm_layout.xml"
+h_plotjuggler_humanoid() {
+    LAYOUT_FILE="$PROJECT_ROOT/config/plotjuggler_humanoid_layout.xml"
     if [ -f "$LAYOUT_FILE" ]; then
-        echo "Loading arm layout from $LAYOUT_FILE"
+        echo "Loading humanoid layout from $LAYOUT_FILE"
         plotjuggler --layout "$LAYOUT_FILE" &
     else
         echo "⚠️  Layout file not found: $LAYOUT_FILE"
@@ -123,11 +127,11 @@ arm_plotjuggler_arm() {
 }
 
 # PlotJuggler with bag file
-arm_plotjuggler_bag() {
+h_plotjuggler_bag() {
     if [ -z "$1" ]; then
         LATEST_BAG=$(ls -td "$PROJECT_ROOT/bags"/*/ 2>/dev/null | head -1)
         if [ -z "$LATEST_BAG" ]; then
-            echo "No bag files found. Usage: arm_plotjuggler_bag <bag_path>"
+            echo "No bag files found. Usage: h_plotjuggler_bag <bag_path>"
             return 1
         fi
         echo "Opening latest bag in PlotJuggler: $LATEST_BAG"
@@ -138,20 +142,20 @@ arm_plotjuggler_bag() {
 }
 
 # Quick RQT launchers with common configs (legacy, use PlotJuggler instead)
-arm_plot_joints() {
-    rqt_plot /joint_states/position[0]:position[1]:position[2]:position[3]:position[4]:position[5] &
+h_plot_joints() {
+    rqt_plot /joint_states/position &
 }
 
-arm_plot_effort() {
-    rqt_plot /joint_states/effort[0]:effort[1]:effort[2]:effort[3]:effort[4]:effort[5] &
+h_plot_effort() {
+    rqt_plot /joint_states/effort &
 }
 
-arm_view_camera() {
-    rqt_image_view /camera/color/image_raw &
+h_view_camera() {
+    rqt_image_view /head_camera/color/image_raw &
 }
 
-arm_view_depth() {
-    rqt_image_view /camera/depth/image_raw &
+h_view_depth() {
+    rqt_image_view /head_camera/depth/image_raw &
 }
 
 # ============================================================================
@@ -159,11 +163,11 @@ arm_view_depth() {
 # ============================================================================
 
 # View build logs
-alias arm_logs='less log/latest_build/events.log'
-alias arm_build_log='cat log/latest_build/logger_all.log'
+alias h_logs='less log/latest_build/events.log'
+alias h_build_log='cat log/latest_build/logger_all.log'
 
 # Search for errors in logs
-arm_errors() {
+h_errors() {
     echo "=== Build Errors ==="
     grep -r "ERROR\|error:" log/latest_build/ 2>/dev/null | head -20
     echo ""
@@ -172,22 +176,22 @@ arm_errors() {
 }
 
 # Search for warnings
-arm_warnings() {
+h_warnings() {
     echo "=== Build Warnings ==="
     grep -r "WARNING\|warning:" log/latest_build/ 2>/dev/null | head -20
 }
 
 # Clean old logs
-alias arm_clean_logs='rm -rf log/'
-alias arm_clean_ros_logs='rm -rf ~/.ros/log/*'
+alias h_clean_logs='rm -rf log/'
+alias h_clean_ros_logs='rm -rf ~/.ros/log/*'
 
 # View latest crash logs
-arm_crash_logs() {
+h_crash_logs() {
     find ~/.ros/log -name "*.log" -mtime -1 -exec grep -l "Segmentation fault\|core dumped\|Fatal error" {} \;
 }
 
 # Tail ROS 2 daemon log
-arm_daemon_log() {
+h_daemon_log() {
     tail -f ~/.ros/log/$(ls -t ~/.ros/log/ | head -1)/rosout.log
 }
 
@@ -196,7 +200,7 @@ arm_daemon_log() {
 # ============================================================================
 
 # Topic bandwidth monitoring
-arm_bw() {
+h_bw() {
     if [ -z "$1" ]; then
         echo "Monitoring all major topics:"
         ros2 topic bw /joint_states &
@@ -209,7 +213,7 @@ arm_bw() {
 }
 
 # Topic frequency monitoring
-arm_hz() {
+h_hz() {
     if [ -z "$1" ]; then
         echo "=== Topic Frequencies ==="
         echo "Joint States:"
@@ -226,18 +230,18 @@ arm_hz() {
 }
 
 # CPU/Memory monitoring for ROS processes
-arm_perf() {
+h_perf() {
     echo "=== ROS 2 Process Performance ==="
     ps aux | grep -E "ros2|gz|rviz|moveit" | grep -v grep | awk '{printf "%-20s CPU: %5s%% MEM: %5s%% CMD: %s\n", $11, $3, $4, $0}' | sort -k3 -rn
 }
 
 # Watch resource usage
-arm_perf_watch() {
+h_perf_watch() {
     watch -n 1 'ps aux | grep -E "ros2|gz|rviz|moveit" | grep -v grep | awk "{printf \"%-20s CPU: %5s%% MEM: %5s%%\n\", \$11, \$3, \$4}" | sort -k3 -rn | head -15'
 }
 
 # Network diagnostics
-arm_network() {
+h_network() {
     echo "=== ROS 2 Network Diagnostics ==="
     echo "DDS Domain ID: ${ROS_DOMAIN_ID:-0}"
     echo "ROS_LOCALHOST_ONLY: ${ROS_LOCALHOST_ONLY:-0}"
@@ -254,27 +258,28 @@ arm_network() {
 # ============================================================================
 
 # Quick record all topics
-arm_record_all() {
+h_record_all() {
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
     mkdir -p "$PROJECT_ROOT/bags"
-    echo "Recording to bags/arm_${TIMESTAMP}"
-    ros2 bag record -a -o "$PROJECT_ROOT/bags/arm_${TIMESTAMP}"
+    echo "Recording to bags/humanoid_${TIMESTAMP}"
+    ros2 bag record -a -o "$PROJECT_ROOT/bags/humanoid_${TIMESTAMP}"
 }
 
 # Record specific topics
-arm_record() {
+h_record() {
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
     mkdir -p "$PROJECT_ROOT/bags"
-    echo "Recording selected topics to bags/arm_${TIMESTAMP}"
-    ros2 bag record -o "$PROJECT_ROOT/bags/arm_${TIMESTAMP}" \
+    echo "Recording selected topics to bags/humanoid_${TIMESTAMP}"
+    ros2 bag record -o "$PROJECT_ROOT/bags/humanoid_${TIMESTAMP}" \
         /joint_states \
-        /arm_controller/follow_joint_trajectory/_action/feedback \
-        /camera/color/image_raw \
-        /camera/depth/points
+        /humanoid_controller/state \
+        /head_camera/color/image_raw \
+        /head_camera/depth/points \
+        /imu/data
 }
 
 # Record joint states only (lightweight)
-arm_record_joints() {
+h_record_joints() {
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
     mkdir -p "$PROJECT_ROOT/bags"
     echo "Recording joint states to bags/joints_${TIMESTAMP}"
@@ -282,7 +287,7 @@ arm_record_joints() {
 }
 
 # Play latest bag
-arm_play() {
+h_play() {
     LATEST_BAG=$(ls -td "$PROJECT_ROOT/bags"/*/ 2>/dev/null | head -1)
     if [ -z "$LATEST_BAG" ]; then
         echo "No bag files found in $PROJECT_ROOT/bags/"
@@ -293,17 +298,17 @@ arm_play() {
 }
 
 # List available bags
-arm_list_bags() {
+h_list_bags() {
     echo "=== Available Bag Files ==="
     ls -lht "$PROJECT_ROOT/bags" 2>/dev/null || echo "No bags directory found"
 }
 
 # Bag info
-arm_bag_info() {
+h_bag_info() {
     if [ -z "$1" ]; then
         LATEST_BAG=$(ls -td "$PROJECT_ROOT/bags"/*/ 2>/dev/null | head -1)
         if [ -z "$LATEST_BAG" ]; then
-            echo "No bag files found. Usage: arm_bag_info <bag_path>"
+            echo "No bag files found. Usage: h_bag_info <bag_path>"
             return 1
         fi
         ros2 bag info "$LATEST_BAG"
@@ -317,9 +322,9 @@ arm_bag_info() {
 # ============================================================================
 
 # Dump all parameters
-arm_params_dump() {
+h_params_dump() {
     if [ -z "$1" ]; then
-        echo "Usage: arm_params_dump <node_name>"
+        echo "Usage: h_params_dump <node_name>"
         echo "Available nodes:"
         ros2 node list
         return 1
@@ -331,9 +336,9 @@ arm_params_dump() {
 }
 
 # List all parameters for a node
-arm_params_list() {
+h_params_list() {
     if [ -z "$1" ]; then
-        echo "Usage: arm_params_list <node_name>"
+        echo "Usage: h_params_list <node_name>"
         echo "Available nodes:"
         ros2 node list
         return 1
@@ -342,18 +347,18 @@ arm_params_list() {
 }
 
 # Get specific parameter
-arm_params_get() {
+h_params_get() {
     if [ -z "$1" ] || [ -z "$2" ]; then
-        echo "Usage: arm_params_get <node_name> <param_name>"
+        echo "Usage: h_params_get <node_name> <param_name>"
         return 1
     fi
     ros2 param get "$1" "$2"
 }
 
 # Set parameter
-arm_params_set() {
+h_params_set() {
     if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
-        echo "Usage: arm_params_set <node_name> <param_name> <value>"
+        echo "Usage: h_params_set <node_name> <param_name> <value>"
         return 1
     fi
     ros2 param set "$1" "$2" "$3"
@@ -373,10 +378,10 @@ _check_tmux() {
 }
 
 # Full development session
-arm_dev_session() {
+h_dev_session() {
     _check_tmux || return 1
 
-    SESSION="arm_dev"
+    SESSION="humanoid_dev"
 
     # Kill existing session if it exists
     tmux kill-session -t $SESSION 2>/dev/null
@@ -385,15 +390,15 @@ arm_dev_session() {
     tmux new-session -d -s $SESSION -n "main" -c "$PROJECT_ROOT"
 
     # Window 0: System launcher
-    tmux send-keys -t $SESSION:0 "echo 'Launch system with: arm_gui or arm_full'" C-m
+    tmux send-keys -t $SESSION:0 "echo 'Launch system with: h_gui or h_full'" C-m
 
     # Window 1: Monitor
     tmux new-window -t $SESSION:1 -n "monitor" -c "$PROJECT_ROOT"
-    tmux send-keys -t $SESSION:1 "sleep 10 && arm_monitor" C-m
+    tmux send-keys -t $SESSION:1 "sleep 10 && h_monitor" C-m
 
     # Window 2: Logs
     tmux new-window -t $SESSION:2 -n "logs" -c "$PROJECT_ROOT"
-    tmux send-keys -t $SESSION:2 "echo 'Use: arm_errors, arm_daemon_log, etc.'" C-m
+    tmux send-keys -t $SESSION:2 "echo 'Use: h_errors, h_daemon_log, etc.'" C-m
 
     # Window 3: Development
     tmux new-window -t $SESSION:3 -n "dev" -c "$PROJECT_ROOT"
@@ -403,10 +408,10 @@ arm_dev_session() {
 }
 
 # Quick monitoring session
-arm_monitor_session() {
+h_monitor_session() {
     _check_tmux || return 1
 
-    SESSION="arm_monitor"
+    SESSION="humanoid_monitor"
     tmux kill-session -t $SESSION 2>/dev/null
 
     tmux new-session -d -s $SESSION -n "status" -c "$PROJECT_ROOT"
@@ -416,20 +421,20 @@ arm_monitor_session() {
 
     # Pane 1: Joint states
     tmux split-window -t $SESSION:0 -h -c "$PROJECT_ROOT"
-    tmux send-keys -t $SESSION:0.1 "arm_watch" C-m
+    tmux send-keys -t $SESSION:0.1 "h_watch" C-m
 
     # Pane 2: Performance
     tmux split-window -t $SESSION:0.0 -v -c "$PROJECT_ROOT"
-    tmux send-keys -t $SESSION:0.2 "arm_perf_watch" C-m
+    tmux send-keys -t $SESSION:0.2 "h_perf_watch" C-m
 
     tmux attach -t $SESSION
 }
 
 # Kill all tmux sessions
-arm_kill_sessions() {
-    tmux kill-session -t arm_dev 2>/dev/null
-    tmux kill-session -t arm_monitor 2>/dev/null
-    echo "✅ All arm tmux sessions killed"
+h_kill_sessions() {
+    tmux kill-session -t humanoid_dev 2>/dev/null
+    tmux kill-session -t humanoid_monitor 2>/dev/null
+    echo "✅ All humanoid tmux sessions killed"
 }
 
 # ============================================================================
@@ -437,10 +442,10 @@ arm_kill_sessions() {
 # ============================================================================
 
 # Create new ROS 2 Python node
-arm_new_node() {
+h_new_node() {
     if [ -z "$1" ] || [ -z "$2" ]; then
-        echo "Usage: arm_new_node <package_name> <node_name>"
-        echo "Example: arm_new_node arm_control my_controller_node"
+        echo "Usage: h_new_node <package_name> <node_name>"
+        echo "Example: h_new_node humanoid_control my_controller_node"
         return 1
     fi
 
@@ -533,10 +538,10 @@ NODEEOF
 }
 
 # Create new launch file
-arm_new_launch() {
+h_new_launch() {
     if [ -z "$1" ] || [ -z "$2" ]; then
-        echo "Usage: arm_new_launch <package_name> <launch_name>"
-        echo "Example: arm_new_launch arm_control my_system"
+        echo "Usage: h_new_launch <package_name> <launch_name>"
+        echo "Example: h_new_launch humanoid_control my_system"
         return 1
     fi
 
@@ -609,15 +614,13 @@ LAUNCHEOF
 # ============================================================================
 
 # Quick access to documentation
-alias arm_docs='cd '"$PROJECT_ROOT"'/docs && ls -lh'
-alias arm_arch='less '"$PROJECT_ROOT"'/docs/ARCHITECTURE.md'
-alias arm_readme='less '"$PROJECT_ROOT"'/CLAUDE.md'
-alias arm_quick='less '"$PROJECT_ROOT"'/docs/QUICK_REFERENCE.md'
+alias h_docs='cd '"$PROJECT_ROOT"'/docs && ls -lh'
+alias h_readme='less '"$PROJECT_ROOT"'/CLAUDE.md'
 
 # Show package info
-arm_pkg_info() {
+h_pkg_info() {
     if [ -z "$1" ]; then
-        echo "Usage: arm_pkg_info <package_name>"
+        echo "Usage: h_pkg_info <package_name>"
         echo "Available packages:"
         ls "$PROJECT_ROOT/src" -1
         return 1
@@ -629,9 +632,9 @@ arm_pkg_info() {
 }
 
 # List all ROS 2 interfaces in package
-arm_interfaces() {
+h_interfaces() {
     if [ -z "$1" ]; then
-        echo "Usage: arm_interfaces <package_name>"
+        echo "Usage: h_interfaces <package_name>"
         return 1
     fi
     echo "=== Messages ==="
@@ -645,10 +648,10 @@ arm_interfaces() {
 }
 
 # Show interface definition
-arm_interface_show() {
+h_interface_show() {
     if [ -z "$1" ]; then
-        echo "Usage: arm_interface_show <interface_name>"
-        echo "Example: arm_interface_show sensor_msgs/msg/JointState"
+        echo "Usage: h_interface_show <interface_name>"
+        echo "Example: h_interface_show sensor_msgs/msg/JointState"
         return 1
     fi
     ros2 interface show "$1"
@@ -659,26 +662,26 @@ arm_interface_show() {
 # ============================================================================
 
 # Install dependencies
-arm_deps_install() {
+h_deps_install() {
     cd "$PROJECT_ROOT" && \
     rosdep install --from-paths src --ignore-src -r -y
 }
 
 # Check for missing dependencies
-arm_deps_check() {
+h_deps_check() {
     cd "$PROJECT_ROOT" && \
     rosdep check --from-paths src --ignore-src
 }
 
 # Update rosdep database
-arm_deps_update() {
+h_deps_update() {
     rosdep update
 }
 
 # List package dependencies
-arm_deps_list() {
+h_deps_list() {
     if [ -z "$1" ]; then
-        echo "Usage: arm_deps_list <package_name>"
+        echo "Usage: h_deps_list <package_name>"
         echo "Available packages:"
         ls "$PROJECT_ROOT/src" -1
         return 1
@@ -699,7 +702,7 @@ arm_deps_list() {
 # ============================================================================
 
 # Backup configuration files
-arm_backup_config() {
+h_backup_config() {
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
     BACKUP_DIR="$PROJECT_ROOT/backups/config_${TIMESTAMP}"
     mkdir -p "$BACKUP_DIR"
@@ -718,7 +721,7 @@ arm_backup_config() {
 }
 
 # List backups
-arm_list_backups() {
+h_list_backups() {
     if [ -d "$PROJECT_ROOT/backups" ]; then
         echo "=== Available Backups ==="
         ls -lht "$PROJECT_ROOT/backups"
@@ -732,7 +735,7 @@ arm_list_backups() {
 # ============================================================================
 
 # Check if system is ready
-arm_check() {
+h_check() {
     echo "=== System Health Check ==="
     echo ""
     echo "Controllers:"
@@ -746,12 +749,12 @@ arm_check() {
 }
 
 # Watch joint states
-arm_watch() {
+h_watch() {
     ros2 topic echo /joint_states --field name,position
 }
 
 # Monitor controller performance
-arm_monitor() {
+h_monitor() {
     watch -n 0.5 'ros2 control list_controllers && echo "" && ros2 topic hz /joint_states --once'
 }
 
@@ -760,10 +763,10 @@ arm_monitor() {
 # ============================================================================
 
 # Quick rebuild of specific package
-arm_rebuild() {
+h_rebuild() {
     if [ -z "$1" ]; then
-        echo "Usage: arm_rebuild <package_name>"
-        echo "Available packages: arm_control, arm_gazebo, arm_moveit_config, arm_perception, etc."
+        echo "Usage: h_rebuild <package_name>"
+        echo "Available packages: humanoid_control, humanoid_gazebo, humanoid_moveit_config, etc."
         return 1
     fi
     cd "$PROJECT_ROOT" && \
@@ -773,8 +776,8 @@ arm_rebuild() {
 }
 
 # Show available commands
-arm_help() {
-    echo "=== LDR Humanoid Arm System - Terminal Shortcuts ==="
+h_help() {
+    echo "=== LD Robots Humanoid Robot Demo - Terminal Shortcuts ==="
     echo ""
     echo "Build & Source:"
     echo "  cb                - colcon build"
@@ -787,90 +790,93 @@ arm_help() {
     echo "  rebuild           - clean build"
     echo ""
     echo "Launch System:"
-    echo "  arm_gui           - Launch GUI system launcher (RECOMMENDED)"
-    echo "  arm_full          - Launch full system (headless sim + controllers)"
-    echo "  arm_launch <w>    - Launch with specific world"
-    echo "  arm_moveit        - Launch Gazebo + MoveIt + RViz"
-    echo "  arm_gazebo        - Launch Gazebo world only"
-    echo "  arm_rviz          - Launch RViz with perception config"
+    echo "  h_gui           - Launch GUI system launcher (RECOMMENDED)"
+    echo "  h_full          - Launch full system (all controllers + sensors)"
+    echo "  h_sim           - Launch simulation environment"
+    echo "  h_hw            - Launch hardware interface"
+    echo "  h_minimal       - Launch minimal system (basic controllers only)"
+    echo "  h_launch <w>    - Launch with specific world"
+    echo "  h_moveit        - Launch MoveIt planning"
+    echo "  h_gazebo        - Launch Gazebo simulation"
+    echo "  h_rviz          - Launch RViz visualization"
     echo ""
     echo "Testing:"
-    echo "  arm_test          - Run example motion"
-    echo "  arm_test_simple   - Run simple test"
+    echo "  h_test               - Run simple walk demo"
+    echo "  h_test_balance       - Test balance controller"
+    echo "  h_test_manipulation  - Test pick and place"
     echo ""
     echo "Monitoring:"
-    echo "  arm_check         - System health check"
-    echo "  arm_status        - Controller and topic status"
-    echo "  arm_controllers   - List active controllers"
-    echo "  arm_joints        - Echo joint states"
-    echo "  arm_watch         - Watch joint positions"
-    echo "  arm_monitor       - Live controller monitor"
+    echo "  h_check         - System health check"
+    echo "  h_status        - Controller and topic status"
+    echo "  h_controllers   - List active controllers"
+    echo "  h_joints        - Echo joint states"
+    echo "  h_watch         - Watch joint positions"
+    echo "  h_monitor       - Live controller monitor"
     echo ""
-    echo "Visualization Tools (type 'arm_help_rqt' for more):"
-    echo "  arm_plotjuggler      - Launch PlotJuggler (RECOMMENDED)"
-    echo "  arm_pj               - PlotJuggler short alias"
-    echo "  arm_plotjuggler_live - PlotJuggler with live ROS 2 streaming"
-    echo "  arm_plotjuggler_bag  - Open bag file in PlotJuggler"
-    echo "  arm_rqt_graph        - Node/topic graph visualization"
-    echo "  arm_view_camera      - View RGB camera"
-    echo "  arm_view_depth       - View depth camera"
+    echo "Visualization Tools (type 'h_help_rqt' for more):"
+    echo "  h_plotjuggler      - Launch PlotJuggler (RECOMMENDED)"
+    echo "  h_pj               - PlotJuggler short alias"
+    echo "  h_plotjuggler_live - PlotJuggler with live ROS 2 streaming"
+    echo "  h_plotjuggler_bag  - Open bag file in PlotJuggler"
+    echo "  h_rqt_graph        - Node/topic graph visualization"
+    echo "  h_view_camera      - View RGB camera"
+    echo "  h_view_depth       - View depth camera"
     echo ""
-    echo "Performance & Profiling (type 'arm_help_perf' for more):"
-    echo "  arm_perf          - Show CPU/memory usage"
-    echo "  arm_perf_watch    - Live resource monitoring"
-    echo "  arm_hz [topic]    - Topic frequency"
-    echo "  arm_bw [topic]    - Topic bandwidth"
-    echo "  arm_network       - Network diagnostics"
+    echo "Performance & Profiling (type 'h_help_perf' for more):"
+    echo "  h_perf          - Show CPU/memory usage"
+    echo "  h_perf_watch    - Live resource monitoring"
+    echo "  h_hz [topic]    - Topic frequency"
+    echo "  h_bw [topic]    - Topic bandwidth"
+    echo "  h_network       - Network diagnostics"
     echo ""
-    echo "Log Management (type 'arm_help_logs' for more):"
-    echo "  arm_logs          - View build logs"
-    echo "  arm_errors        - Search for errors"
-    echo "  arm_warnings      - Search for warnings"
-    echo "  arm_daemon_log    - Tail ROS 2 daemon log"
-    echo "  arm_clean_logs    - Clean build logs"
+    echo "Log Management (type 'h_help_logs' for more):"
+    echo "  h_logs          - View build logs"
+    echo "  h_errors        - Search for errors"
+    echo "  h_warnings      - Search for warnings"
+    echo "  h_daemon_log    - Tail ROS 2 daemon log"
+    echo "  h_clean_logs    - Clean build logs"
     echo ""
-    echo "ROS 2 Bags (type 'arm_help_bags' for more):"
-    echo "  arm_record        - Record selected topics"
-    echo "  arm_record_all    - Record all topics"
-    echo "  arm_record_joints - Record joint states only"
-    echo "  arm_play          - Play latest bag"
-    echo "  arm_list_bags     - List all bags"
-    echo "  arm_bag_info      - Show bag info"
+    echo "ROS 2 Bags (type 'h_help_bags' for more):"
+    echo "  h_record        - Record selected topics"
+    echo "  h_record_all    - Record all topics"
+    echo "  h_record_joints - Record joint states only"
+    echo "  h_play          - Play latest bag"
+    echo "  h_list_bags     - List all bags"
+    echo "  h_bag_info      - Show bag info"
     echo ""
-    echo "Parameters (type 'arm_help_params' for more):"
-    echo "  arm_params_dump <node>  - Dump node parameters"
-    echo "  arm_params_list <node>  - List node parameters"
-    echo "  arm_params_get <n> <p>  - Get parameter value"
-    echo "  arm_params_set <n> <p> <v> - Set parameter"
+    echo "Parameters (type 'h_help_params' for more):"
+    echo "  h_params_dump <node>  - Dump node parameters"
+    echo "  h_params_list <node>  - List node parameters"
+    echo "  h_params_get <n> <p>  - Get parameter value"
+    echo "  h_params_set <n> <p> <v> - Set parameter"
     echo ""
-    echo "Multi-Terminal (tmux) (type 'arm_help_tmux' for more):"
-    echo "  arm_dev_session   - Start full development session"
-    echo "  arm_monitor_session - Start monitoring session"
-    echo "  arm_kill_sessions - Kill all tmux sessions"
+    echo "Multi-Terminal (tmux) (type 'h_help_tmux' for more):"
+    echo "  h_dev_session   - Start full development session"
+    echo "  h_monitor_session - Start monitoring session"
+    echo "  h_kill_sessions - Kill all tmux sessions"
     echo ""
-    echo "Code Generation (type 'arm_help_codegen' for more):"
-    echo "  arm_new_node <pkg> <name>   - Create new ROS 2 node"
-    echo "  arm_new_launch <pkg> <name> - Create new launch file"
+    echo "Code Generation (type 'h_help_codegen' for more):"
+    echo "  h_new_node <pkg> <name>   - Create new ROS 2 node"
+    echo "  h_new_launch <pkg> <name> - Create new launch file"
     echo ""
-    echo "Documentation (type 'arm_help_docs' for more):"
-    echo "  arm_docs          - Navigate to docs folder"
-    echo "  arm_arch          - View architecture docs"
-    echo "  arm_readme        - View CLAUDE.md"
-    echo "  arm_pkg_info <pkg> - Show package info"
-    echo "  arm_interfaces <pkg> - List package interfaces"
+    echo "Documentation (type 'h_help_docs' for more):"
+    echo "  h_docs               - Navigate to docs folder"
+    echo "  h_readme             - View CLAUDE.md"
+    echo "  h_pkg_info <pkg>     - Show package info"
+    echo "  h_interfaces <pkg>   - List package interfaces"
     echo ""
-    echo "Dependencies (type 'arm_help_deps' for more):"
-    echo "  arm_deps_install  - Install all dependencies"
-    echo "  arm_deps_check    - Check for missing dependencies"
-    echo "  arm_deps_list <pkg> - List package dependencies"
+    echo "Dependencies (type 'h_help_deps' for more):"
+    echo "  h_deps_install  - Install all dependencies"
+    echo "  h_deps_check    - Check for missing dependencies"
+    echo "  h_deps_list <pkg> - List package dependencies"
     echo ""
-    echo "Backup & Restore (type 'arm_help_backup' for more):"
-    echo "  arm_backup_config - Backup configuration files"
-    echo "  arm_list_backups  - List available backups"
+    echo "Backup & Restore (type 'h_help_backup' for more):"
+    echo "  h_backup_config - Backup configuration files"
+    echo "  h_list_backups  - List available backups"
     echo ""
     echo "Development:"
-    echo "  arm_rebuild <pkg> - Rebuild specific package"
-    echo "  arm_home          - Navigate to project root"
+    echo "  h_rebuild <pkg> - Rebuild specific package"
+    echo "  h_home          - Navigate to project root"
     echo ""
     echo "ROS 2 Commands:"
     echo "  r2tl, r2te, r2th, r2ti - topic list/echo/hz/info"
@@ -884,21 +890,27 @@ arm_help() {
     echo "  gz_models         - List Gazebo models"
     echo ""
     echo "For detailed help on specific topics, use:"
-    echo "  arm_help_rqt, arm_help_perf, arm_help_logs, arm_help_bags,"
-    echo "  arm_help_params, arm_help_tmux, arm_help_codegen, arm_help_docs,"
-    echo "  arm_help_deps, arm_help_backup"
+    echo "  h_help_rqt, h_help_perf, h_help_logs, h_help_bags,"
+    echo "  h_help_params, h_help_tmux, h_help_codegen, h_help_docs,"
+    echo "  h_help_deps, h_help_backup"
+    echo ""
+    echo "Quick tips:"
+    echo "  - Use 'h_home' to return to project root"
+    echo "  - Use 'h_rviz' to visualize the robot"
+    echo "  - Use 'h_sim' to start the simulation"
+    echo "  - Use 'h_pj' for PlotJuggler (best for data visualization)"
 }
 
 # Detailed help sections
-arm_help_rqt() {
+h_help_rqt() {
     echo "=== RQT Tools - Debugging & Visualization ==="
     echo ""
     echo "PlotJuggler (RECOMMENDED for plotting):"
-    echo "  arm_plotjuggler         - Launch PlotJuggler"
-    echo "  arm_pj                  - Short alias for PlotJuggler"
-    echo "  arm_plotjuggler_live    - PlotJuggler with ROS 2 live streaming"
-    echo "  arm_plotjuggler_arm     - Load saved arm layout (if exists)"
-    echo "  arm_plotjuggler_bag [path] - Open bag file in PlotJuggler"
+    echo "  h_plotjuggler         - Launch PlotJuggler"
+    echo "  h_pj                  - Short alias for PlotJuggler"
+    echo "  h_plotjuggler_live    - PlotJuggler with ROS 2 live streaming"
+    echo "  h_plotjuggler_arm     - Load saved arm layout (if exists)"
+    echo "  h_plotjuggler_bag [path] - Open bag file in PlotJuggler"
     echo ""
     echo "PlotJuggler Features:"
     echo "  - Superior time-series visualization vs rqt_plot"
@@ -911,183 +923,181 @@ arm_help_rqt() {
     echo "  sudo apt install ros-jazzy-plotjuggler-ros"
     echo ""
     echo "Launch RQT Tools:"
-    echo "  arm_rqt              - Launch main RQT interface"
-    echo "  arm_rqt_graph        - Node/topic graph visualization"
-    echo "  arm_rqt_plot         - Real-time data plotting (basic)"
-    echo "  arm_rqt_console      - Log message console"
-    echo "  arm_rqt_reconfigure  - Dynamic parameter reconfiguration"
-    echo "  arm_rqt_image        - Image viewer"
-    echo "  arm_rqt_tf           - TF tree visualization"
-    echo "  arm_rqt_bag          - Bag file viewer"
+    echo "  h_rqt              - Launch main RQT interface"
+    echo "  h_rqt_graph        - Node/topic graph visualization"
+    echo "  h_rqt_plot         - Real-time data plotting (basic)"
+    echo "  h_rqt_console      - Log message console"
+    echo "  h_rqt_reconfigure  - Dynamic parameter reconfiguration"
+    echo "  h_rqt_image        - Image viewer"
+    echo "  h_rqt_tf           - TF tree visualization"
+    echo "  h_rqt_bag          - Bag file viewer"
     echo ""
     echo "Quick Launchers:"
-    echo "  arm_plot_joints      - Plot all 6 joint positions (rqt_plot)"
-    echo "  arm_plot_effort      - Plot all 6 joint efforts (rqt_plot)"
-    echo "  arm_view_camera      - View RGB camera feed"
-    echo "  arm_view_depth       - View depth camera feed"
+    echo "  h_plot_joints      - Plot all 6 joint positions (rqt_plot)"
+    echo "  h_plot_effort      - Plot all 6 joint efforts (rqt_plot)"
+    echo "  h_view_camera      - View RGB camera feed"
+    echo "  h_view_depth       - View depth camera feed"
 }
 
-arm_help_perf() {
+h_help_perf() {
     echo "=== Performance Profiling & Network Diagnostics ==="
     echo ""
     echo "Resource Monitoring:"
-    echo "  arm_perf             - Show CPU/memory usage for ROS processes"
-    echo "  arm_perf_watch       - Live resource monitoring (updates every 1s)"
+    echo "  h_perf             - Show CPU/memory usage for ROS processes"
+    echo "  h_perf_watch       - Live resource monitoring (updates every 1s)"
     echo ""
     echo "Topic Performance:"
-    echo "  arm_hz               - Show frequency of all major topics"
-    echo "  arm_hz <topic>       - Show frequency of specific topic"
-    echo "  arm_bw               - Show bandwidth of all major topics"
-    echo "  arm_bw <topic>       - Show bandwidth of specific topic"
+    echo "  h_hz               - Show frequency of all major topics"
+    echo "  h_hz <topic>       - Show frequency of specific topic"
+    echo "  h_bw               - Show bandwidth of all major topics"
+    echo "  h_bw <topic>       - Show bandwidth of specific topic"
     echo ""
     echo "Network Diagnostics:"
-    echo "  arm_network          - DDS domain, participants, bandwidth"
+    echo "  h_network          - DDS domain, participants, bandwidth"
 }
 
-arm_help_logs() {
+h_help_logs() {
     echo "=== Log Management ==="
     echo ""
     echo "View Logs:"
-    echo "  arm_logs             - View build event logs"
-    echo "  arm_build_log        - View full build log"
-    echo "  arm_daemon_log       - Tail ROS 2 daemon log (live)"
+    echo "  h_logs             - View build event logs"
+    echo "  h_build_log        - View full build log"
+    echo "  h_daemon_log       - Tail ROS 2 daemon log (live)"
     echo ""
     echo "Search Logs:"
-    echo "  arm_errors           - Search for build and runtime errors"
-    echo "  arm_warnings         - Search for build warnings"
-    echo "  arm_crash_logs       - Find recent crash logs"
+    echo "  h_errors           - Search for build and runtime errors"
+    echo "  h_warnings         - Search for build warnings"
+    echo "  h_crash_logs       - Find recent crash logs"
     echo ""
     echo "Clean Logs:"
-    echo "  arm_clean_logs       - Remove build logs"
-    echo "  arm_clean_ros_logs   - Remove ROS 2 runtime logs"
+    echo "  h_clean_logs       - Remove build logs"
+    echo "  h_clean_ros_logs   - Remove ROS 2 runtime logs"
 }
 
-arm_help_bags() {
+h_help_bags() {
     echo "=== ROS 2 Bag Recording & Playback ==="
     echo ""
     echo "Recording:"
-    echo "  arm_record           - Record selected topics (joints, camera, feedback)"
-    echo "  arm_record_all       - Record ALL topics (large file!)"
-    echo "  arm_record_joints    - Record joint states only (lightweight)"
+    echo "  h_record           - Record selected topics (joints, camera, feedback)"
+    echo "  h_record_all       - Record ALL topics (large file!)"
+    echo "  h_record_joints    - Record joint states only (lightweight)"
     echo ""
     echo "Playback:"
-    echo "  arm_play             - Play latest bag file"
-    echo "  arm_play <path>      - Play specific bag file"
+    echo "  h_play             - Play latest bag file"
+    echo "  h_play <path>      - Play specific bag file"
     echo ""
     echo "Info:"
-    echo "  arm_list_bags        - List all recorded bags"
-    echo "  arm_bag_info         - Show info for latest bag"
-    echo "  arm_bag_info <path>  - Show info for specific bag"
+    echo "  h_list_bags        - List all recorded bags"
+    echo "  h_bag_info         - Show info for latest bag"
+    echo "  h_bag_info <path>  - Show info for specific bag"
     echo ""
     echo "Bags are saved to: $PROJECT_ROOT/bags/"
 }
 
-arm_help_params() {
+h_help_params() {
     echo "=== Parameter Management ==="
     echo ""
     echo "Node Parameters:"
-    echo "  arm_params_dump <node>       - Dump all parameters to YAML file"
-    echo "  arm_params_list <node>       - List all parameters for node"
-    echo "  arm_params_get <node> <param> - Get specific parameter value"
-    echo "  arm_params_set <node> <param> <value> - Set parameter value"
+    echo "  h_params_dump <node>       - Dump all parameters to YAML file"
+    echo "  h_params_list <node>       - List all parameters for node"
+    echo "  h_params_get <node> <param> - Get specific parameter value"
+    echo "  h_params_set <node> <param> <value> - Set parameter value"
     echo ""
     echo "Example:"
-    echo "  arm_params_list /controller_manager"
-    echo "  arm_params_get /controller_manager update_rate"
-    echo "  arm_params_set /perception_node processing_rate 2.0"
+    echo "  h_params_list /controller_manager"
+    echo "  h_params_get /controller_manager update_rate"
+    echo "  h_params_set /perception_node processing_rate 2.0"
     echo ""
     echo "Dumped parameters are saved to: $PROJECT_ROOT/params/"
 }
 
-arm_help_tmux() {
+h_help_tmux() {
     echo "=== Multi-Terminal Workflows (tmux) ==="
     echo ""
     echo "Sessions:"
-    echo "  arm_dev_session      - Full development session with 4 windows:"
+    echo "  h_dev_session      - Full development session with 4 windows:"
     echo "                         0: Main (for launching system)"
     echo "                         1: Monitor (controller status)"
     echo "                         2: Logs (error checking)"
     echo "                         3: Development (coding)"
     echo ""
-    echo "  arm_monitor_session  - Dedicated monitoring session with 3 panes:"
+    echo "  h_monitor_session  - Dedicated monitoring session with 3 panes:"
     echo "                         - Controller status (top-left)"
     echo "                         - Joint states (right)"
     echo "                         - Resource usage (bottom-left)"
     echo ""
-    echo "  arm_kill_sessions    - Kill all arm tmux sessions"
+    echo "  h_kill_sessions    - Kill all arm tmux sessions"
     echo ""
     echo "tmux Navigation:"
     echo "  Ctrl+b then number   - Switch between windows"
     echo "  Ctrl+b then arrow    - Switch between panes"
     echo "  Ctrl+b then d        - Detach from session"
-    echo "  tmux attach -t arm_dev - Re-attach to session"
+    echo "  tmux attach -t humanoid_dev - Re-attach to session"
     echo ""
     echo "Note: tmux must be installed (sudo apt install tmux)"
 }
 
-arm_help_codegen() {
+h_help_codegen() {
     echo "=== Code Generation Templates ==="
     echo ""
     echo "Create New Files:"
-    echo "  arm_new_node <package> <node_name>"
+    echo "  h_new_node <package> <node_name>"
     echo "    - Creates ROS 2 Python node with boilerplate"
     echo "    - Includes publisher, subscriber, timer, parameters"
     echo "    - Automatically executable with correct shebang"
     echo ""
-    echo "  arm_new_launch <package> <launch_name>"
+    echo "  h_new_launch <package> <launch_name>"
     echo "    - Creates Python launch file template"
     echo "    - Includes launch arguments and example node"
     echo ""
     echo "Examples:"
-    echo "  arm_new_node arm_control trajectory_optimizer"
-    echo "  arm_new_launch arm_control custom_system"
+    echo "  h_new_node humanoid_control trajectory_optimizer"
+    echo "  h_new_launch humanoid_control custom_system"
     echo ""
     echo "Note: Remember to add new nodes to package setup.py!"
 }
 
-arm_help_docs() {
+h_help_docs() {
     echo "=== Documentation Helpers ==="
     echo ""
     echo "View Documentation:"
-    echo "  arm_docs             - Navigate to docs folder"
-    echo "  arm_arch             - View ARCHITECTURE.md (70+ pages)"
-    echo "  arm_readme           - View CLAUDE.md (this guide)"
-    echo "  arm_quick            - View QUICK_REFERENCE.md"
+    echo "  h_docs             - Navigate to docs folder"
+    echo "  h_readme           - View CLAUDE.md (project guide)"
     echo ""
     echo "Package Information:"
-    echo "  arm_pkg_info <pkg>   - Show package prefix and executables"
-    echo "  arm_interfaces <pkg> - List messages/services/actions in package"
-    echo "  arm_interface_show <interface> - Show interface definition"
+    echo "  h_pkg_info <pkg>   - Show package prefix and executables"
+    echo "  h_interfaces <pkg> - List messages/services/actions in package"
+    echo "  h_interface_show <interface> - Show interface definition"
     echo ""
     echo "Examples:"
-    echo "  arm_pkg_info arm_control"
-    echo "  arm_interfaces sensor_msgs"
-    echo "  arm_interface_show sensor_msgs/msg/JointState"
+    echo "  h_pkg_info humanoid_control"
+    echo "  h_interfaces sensor_msgs"
+    echo "  h_interface_show sensor_msgs/msg/JointState"
 }
 
-arm_help_deps() {
+h_help_deps() {
     echo "=== Dependency Management ==="
     echo ""
     echo "Install & Check:"
-    echo "  arm_deps_install     - Install all missing dependencies"
-    echo "  arm_deps_check       - Check for missing dependencies"
-    echo "  arm_deps_update      - Update rosdep database"
+    echo "  h_deps_install     - Install all missing dependencies"
+    echo "  h_deps_check       - Check for missing dependencies"
+    echo "  h_deps_update      - Update rosdep database"
     echo ""
     echo "Package Dependencies:"
-    echo "  arm_deps_list <pkg>  - List dependencies for specific package"
+    echo "  h_deps_list <pkg>  - List dependencies for specific package"
     echo ""
     echo "Examples:"
-    echo "  arm_deps_check       # Check what's missing"
-    echo "  arm_deps_install     # Install missing deps"
-    echo "  arm_deps_list arm_control  # Show arm_control dependencies"
+    echo "  h_deps_check       # Check what's missing"
+    echo "  h_deps_install     # Install missing deps"
+    echo "  h_deps_list humanoid_control  # Show humanoid_control dependencies"
 }
 
-arm_help_backup() {
+h_help_backup() {
     echo "=== Backup & Restore ==="
     echo ""
     echo "Configuration Backup:"
-    echo "  arm_backup_config    - Backup all YAML, RVIZ, SRDF config files"
-    echo "  arm_list_backups     - List all available backups"
+    echo "  h_backup_config    - Backup all YAML, RVIZ, SRDF config files"
+    echo "  h_list_backups     - List all available backups"
     echo ""
     echo "Backups include:"
     echo "  - All .yaml configuration files"
@@ -1112,6 +1122,8 @@ fi
 
 # Show help on first load
 echo ""
-echo "🤖 LDR Humanoid Arm System shortcuts loaded!"
-echo "   Type 'arm_help' to see all available commands. Type arm_home for project root."
+echo "🤖 LD Robots Humanoid Robot Demo shortcuts loaded!"
+echo "   Type 'h_help' to see all available commands."
+echo "   Type 'h_home' to navigate to project root."
+echo "   Type 'h_rviz' to visualize the robot."
 echo ""
