@@ -6,9 +6,10 @@ Launch file to visualize humanoid robot in RViz
 from launch import LaunchDescription
 from launch import conditions
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
@@ -50,7 +51,9 @@ def generate_launch_description():
         name='robot_state_publisher',
         output='screen',
         parameters=[{
-            'robot_description': urdf_file,
+            'robot_description': ParameterValue(
+                Command(['xacro ', urdf_file ]),
+                value_type=str),
             'use_sim_time': False
         }]
     )
