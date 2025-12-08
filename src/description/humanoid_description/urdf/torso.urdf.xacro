@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="torso" params="parent">
+
+    <!-- Torso properties -->
+    <xacro:property name="torso_length" value="0.5"/>
+    <xacro:property name="torso_width" value="0.25"/>
+    <xacro:property name="torso_depth" value="0.15"/>
+    <xacro:property name="torso_mass" value="15.0"/>
+
+    <!-- Torso joint (fixed to base for now, could be floating) -->
+    <joint name="torso_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="torso_link"/>
+      <origin xyz="0 0 0.95" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Torso link -->
+    <link name="torso_link">
+      <visual>
+        <geometry>
+          <box size="${torso_depth} ${torso_width} ${torso_length}"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${torso_depth} ${torso_width} ${torso_length}"/>
+        </geometry>
+      </collision>
+      <xacro:box_inertia
+        mass="${torso_mass}"
+        x="${torso_depth}"
+        y="${torso_width}"
+        z="${torso_length}"/>
+    </link>
+
+    <!-- Waist (connection to pelvis) -->
+    <joint name="waist_pitch" type="revolute">
+      <parent link="torso_link"/>
+      <child link="waist_link"/>
+      <origin xyz="0 0 ${-torso_length/2 - 0.05}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="100" lower="-0.5" upper="0.5" velocity="2.0"/>
+      <dynamics damping="0.7" friction="0.0"/>
+    </joint>
+
+    <link name="waist_link">
+      <visual>
+        <geometry>
+          <cylinder radius="0.12" length="0.1"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="0.12" length="0.1"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_inertia mass="3.0" radius="0.12" length="0.1"/>
+    </link>
+
+  </xacro:macro>
+
+</robot>

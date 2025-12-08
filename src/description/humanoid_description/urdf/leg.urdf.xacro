@@ -1,0 +1,192 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="leg" params="prefix parent reflect">
+
+    <!-- Leg properties -->
+    <xacro:property name="hip_offset_y" value="0.12"/>
+    <xacro:property name="thigh_length" value="0.40"/>
+    <xacro:property name="shin_length" value="0.38"/>
+    <xacro:property name="foot_length" value="0.20"/>
+    <xacro:property name="foot_width" value="0.10"/>
+    <xacro:property name="foot_height" value="0.05"/>
+    <xacro:property name="leg_radius" value="0.05"/>
+
+    <!-- Hip yaw joint -->
+    <joint name="${prefix}_hip_yaw" type="revolute">
+      <parent link="${parent}"/>
+      <child link="${prefix}_hip_yaw_link"/>
+      <origin xyz="0 ${reflect * hip_offset_y} 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="80" lower="-0.5" upper="0.5" velocity="3.0"/>
+      <dynamics damping="1.0" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}_hip_yaw_link">
+      <visual>
+        <geometry>
+          <sphere radius="0.07"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <sphere radius="0.07"/>
+        </geometry>
+      </collision>
+      <xacro:sphere_inertia mass="1.5" radius="0.07"/>
+    </link>
+
+    <!-- Hip roll joint -->
+    <joint name="${prefix}_hip_roll" type="revolute">
+      <parent link="${prefix}_hip_yaw_link"/>
+      <child link="${prefix}_hip_roll_link"/>
+      <origin xyz="0 ${reflect * 0.05} 0" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>
+      <limit effort="100" lower="-0.5" upper="2.0" velocity="3.0"/>
+      <dynamics damping="1.0" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}_hip_roll_link">
+      <visual>
+        <geometry>
+          <cylinder radius="0.06" length="0.08"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="0.06" length="0.08"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_inertia mass="2.0" radius="0.06" length="0.08"/>
+    </link>
+
+    <!-- Hip pitch joint -->
+    <joint name="${prefix}_hip_pitch" type="revolute">
+      <parent link="${prefix}_hip_roll_link"/>
+      <child link="${prefix}_thigh_link"/>
+      <origin xyz="0 0 -0.04" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="150" lower="-1.57" upper="2.5" velocity="3.0"/>
+      <dynamics damping="1.0" friction="0.0"/>
+    </joint>
+
+    <!-- Thigh -->
+    <link name="${prefix}_thigh_link">
+      <visual>
+        <origin xyz="0 0 ${-thigh_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${leg_radius}" length="${thigh_length}"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-thigh_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${leg_radius}" length="${thigh_length}"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_inertia mass="5.0" radius="${leg_radius}" length="${thigh_length}"/>
+    </link>
+
+    <!-- Knee pitch joint -->
+    <joint name="${prefix}_knee_pitch" type="revolute">
+      <parent link="${prefix}_thigh_link"/>
+      <child link="${prefix}_shin_link"/>
+      <origin xyz="0 0 ${-thigh_length}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="150" lower="-2.5" upper="0" velocity="3.0"/>
+      <dynamics damping="1.0" friction="0.0"/>
+    </joint>
+
+    <!-- Shin -->
+    <link name="${prefix}_shin_link">
+      <visual>
+        <origin xyz="0 0 ${-shin_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${leg_radius * 0.8}" length="${shin_length}"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-shin_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${leg_radius * 0.8}" length="${shin_length}"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_inertia mass="4.0" radius="${leg_radius * 0.8}" length="${shin_length}"/>
+    </link>
+
+    <!-- Ankle pitch joint -->
+    <joint name="${prefix}_ankle_pitch" type="revolute">
+      <parent link="${prefix}_shin_link"/>
+      <child link="${prefix}_ankle_link"/>
+      <origin xyz="0 0 ${-shin_length}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="100" lower="-1.0" upper="1.0" velocity="3.0"/>
+      <dynamics damping="0.8" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}_ankle_link">
+      <visual>
+        <geometry>
+          <sphere radius="0.05"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <sphere radius="0.05"/>
+        </geometry>
+      </collision>
+      <xacro:sphere_inertia mass="0.8" radius="0.05"/>
+    </link>
+
+    <!-- Ankle roll joint -->
+    <joint name="${prefix}_ankle_roll" type="revolute">
+      <parent link="${prefix}_ankle_link"/>
+      <child link="${prefix}_foot_link"/>
+      <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>
+      <limit effort="100" lower="-0.5" upper="0.5" velocity="3.0"/>
+      <dynamics damping="0.8" friction="0.0"/>
+    </joint>
+
+    <!-- Foot -->
+    <link name="${prefix}_foot_link">
+      <visual>
+        <origin xyz="${foot_length/4} 0 ${-foot_height/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${foot_length} ${foot_width} ${foot_height}"/>
+        </geometry>
+        <material name="black"/>
+      </visual>
+      <collision>
+        <origin xyz="${foot_length/4} 0 ${-foot_height/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${foot_length} ${foot_width} ${foot_height}"/>
+        </geometry>
+      </collision>
+      <xacro:box_inertia mass="1.5" x="${foot_length}" y="${foot_width}" z="${foot_height}"/>
+    </link>
+
+    <!-- Contact sensor frame at bottom of foot -->
+    <joint name="${prefix}_foot_contact_joint" type="fixed">
+      <parent link="${prefix}_foot_link"/>
+      <child link="${prefix}_foot_contact"/>
+      <origin xyz="${foot_length/4} 0 ${-foot_height}" rpy="0 0 0"/>
+    </joint>
+
+    <link name="${prefix}_foot_contact">
+      <visual>
+        <geometry>
+          <sphere radius="0.01"/>
+        </geometry>
+        <material name="red"/>
+      </visual>
+    </link>
+
+  </xacro:macro>
+
+</robot>

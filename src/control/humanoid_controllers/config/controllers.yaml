@@ -1,0 +1,234 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    # Joint state broadcaster
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    # IMU sensor broadcaster
+    imu_sensor_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
+
+    # Head controller
+    head_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # Torso controller
+    torso_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # Left arm controller
+    left_arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # Right arm controller
+    right_arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # Left leg controller
+    left_leg_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # Right leg controller
+    right_leg_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # Gripper controllers
+    left_gripper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    right_gripper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+# Joint State Broadcaster
+joint_state_broadcaster:
+  ros__parameters:
+    joints:
+      - neck_pitch
+      - neck_yaw
+      - waist_pitch
+      - left_shoulder_pitch
+      - left_shoulder_roll
+      - left_shoulder_yaw
+      - left_elbow_pitch
+      - left_wrist_pitch
+      - left_wrist_roll
+      - left_gripper
+      - right_shoulder_pitch
+      - right_shoulder_roll
+      - right_shoulder_yaw
+      - right_elbow_pitch
+      - right_wrist_pitch
+      - right_wrist_roll
+      - right_gripper
+      - left_hip_yaw
+      - left_hip_roll
+      - left_hip_pitch
+      - left_knee_pitch
+      - left_ankle_pitch
+      - left_ankle_roll
+      - right_hip_yaw
+      - right_hip_roll
+      - right_hip_pitch
+      - right_knee_pitch
+      - right_ankle_pitch
+      - right_ankle_roll
+
+# IMU Sensor Broadcaster
+imu_sensor_broadcaster:
+  ros__parameters:
+    sensor_name: imu_sensor
+    frame_id: imu_link
+
+# Head Controller
+head_controller:
+  ros__parameters:
+    joints:
+      - neck_pitch
+      - neck_yaw
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+      neck_pitch:
+        trajectory: 0.05
+        goal: 0.01
+      neck_yaw:
+        trajectory: 0.05
+        goal: 0.01
+
+# Torso Controller
+torso_controller:
+  ros__parameters:
+    joints:
+      - waist_pitch
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+
+# Left Arm Controller
+left_arm_controller:
+  ros__parameters:
+    joints:
+      - left_shoulder_pitch
+      - left_shoulder_roll
+      - left_shoulder_yaw
+      - left_elbow_pitch
+      - left_wrist_pitch
+      - left_wrist_roll
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+
+# Right Arm Controller
+right_arm_controller:
+  ros__parameters:
+    joints:
+      - right_shoulder_pitch
+      - right_shoulder_roll
+      - right_shoulder_yaw
+      - right_elbow_pitch
+      - right_wrist_pitch
+      - right_wrist_roll
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+
+# Left Leg Controller
+left_leg_controller:
+  ros__parameters:
+    joints:
+      - left_hip_yaw
+      - left_hip_roll
+      - left_hip_pitch
+      - left_knee_pitch
+      - left_ankle_pitch
+      - left_ankle_roll
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+
+# Right Leg Controller
+right_leg_controller:
+  ros__parameters:
+    joints:
+      - right_hip_yaw
+      - right_hip_roll
+      - right_hip_pitch
+      - right_knee_pitch
+      - right_ankle_pitch
+      - right_ankle_roll
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+
+# Left Gripper Controller
+left_gripper_controller:
+  ros__parameters:
+    joints:
+      - left_gripper
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+
+# Right Gripper Controller
+right_gripper_controller:
+  ros__parameters:
+    joints:
+      - right_gripper
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0

@@ -1,0 +1,200 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="arm" params="prefix parent reflect">
+
+    <!-- Arm properties -->
+    <xacro:property name="shoulder_offset_y" value="0.20"/>
+    <xacro:property name="shoulder_offset_z" value="0.18"/>
+    <xacro:property name="upper_arm_length" value="0.28"/>
+    <xacro:property name="forearm_length" value="0.25"/>
+    <xacro:property name="hand_length" value="0.12"/>
+    <xacro:property name="arm_radius" value="0.04"/>
+
+    <!-- Shoulder pitch joint -->
+    <joint name="${prefix}_shoulder_pitch" type="revolute">
+      <parent link="${parent}"/>
+      <child link="${prefix}_shoulder_link"/>
+      <origin xyz="0 ${reflect * shoulder_offset_y} ${shoulder_offset_z}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="50" lower="-2.8" upper="2.8" velocity="3.0"/>
+      <dynamics damping="0.7" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}_shoulder_link">
+      <visual>
+        <geometry>
+          <sphere radius="0.06"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <sphere radius="0.06"/>
+        </geometry>
+      </collision>
+      <xacro:sphere_inertia mass="1.0" radius="0.06"/>
+    </link>
+
+    <!-- Shoulder roll joint -->
+    <joint name="${prefix}_shoulder_roll" type="revolute">
+      <parent link="${prefix}_shoulder_link"/>
+      <child link="${prefix}_upper_arm_link"/>
+      <origin xyz="0 ${reflect * 0.06} 0" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>
+      <limit effort="50" lower="-1.57" upper="3.14" velocity="3.0"/>
+      <dynamics damping="0.7" friction="0.0"/>
+    </joint>
+
+    <!-- Upper arm -->
+    <link name="${prefix}_upper_arm_link">
+      <visual>
+        <origin xyz="0 0 ${-upper_arm_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${arm_radius}" length="${upper_arm_length}"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-upper_arm_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${arm_radius}" length="${upper_arm_length}"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_inertia mass="2.0" radius="${arm_radius}" length="${upper_arm_length}"/>
+    </link>
+
+    <!-- Shoulder yaw joint -->
+    <joint name="${prefix}_shoulder_yaw" type="revolute">
+      <parent link="${prefix}_upper_arm_link"/>
+      <child link="${prefix}_elbow_link"/>
+      <origin xyz="0 0 ${-upper_arm_length}" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="40" lower="-1.57" upper="1.57" velocity="3.0"/>
+      <dynamics damping="0.5" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}_elbow_link">
+      <visual>
+        <geometry>
+          <sphere radius="0.05"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <sphere radius="0.05"/>
+        </geometry>
+      </collision>
+      <xacro:sphere_inertia mass="0.5" radius="0.05"/>
+    </link>
+
+    <!-- Elbow pitch joint -->
+    <joint name="${prefix}_elbow_pitch" type="revolute">
+      <parent link="${prefix}_elbow_link"/>
+      <child link="${prefix}_forearm_link"/>
+      <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="40" lower="0" upper="2.5" velocity="3.0"/>
+      <dynamics damping="0.5" friction="0.0"/>
+    </joint>
+
+    <!-- Forearm -->
+    <link name="${prefix}_forearm_link">
+      <visual>
+        <origin xyz="0 0 ${-forearm_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${arm_radius * 0.8}" length="${forearm_length}"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-forearm_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${arm_radius * 0.8}" length="${forearm_length}"/>
+        </geometry>
+      </collision>
+      <xacro:cylinder_inertia mass="1.5" radius="${arm_radius * 0.8}" length="${forearm_length}"/>
+    </link>
+
+    <!-- Wrist pitch joint -->
+    <joint name="${prefix}_wrist_pitch" type="revolute">
+      <parent link="${prefix}_forearm_link"/>
+      <child link="${prefix}_wrist_link"/>
+      <origin xyz="0 0 ${-forearm_length}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="20" lower="-1.57" upper="1.57" velocity="3.0"/>
+      <dynamics damping="0.3" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}_wrist_link">
+      <visual>
+        <geometry>
+          <sphere radius="0.04"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <sphere radius="0.04"/>
+        </geometry>
+      </collision>
+      <xacro:sphere_inertia mass="0.3" radius="0.04"/>
+    </link>
+
+    <!-- Wrist roll joint -->
+    <joint name="${prefix}_wrist_roll" type="revolute">
+      <parent link="${prefix}_wrist_link"/>
+      <child link="${prefix}_hand_link"/>
+      <origin xyz="0 0 -0.04" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="20" lower="-1.57" upper="1.57" velocity="3.0"/>
+      <dynamics damping="0.3" friction="0.0"/>
+    </joint>
+
+    <!-- Hand/gripper -->
+    <link name="${prefix}_hand_link">
+      <visual>
+        <origin xyz="0 0 ${-hand_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.06 0.08 ${hand_length}"/>
+        </geometry>
+        <material name="silver"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-hand_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.06 0.08 ${hand_length}"/>
+        </geometry>
+      </collision>
+      <xacro:box_inertia mass="0.5" x="0.06" y="0.08" z="${hand_length}"/>
+    </link>
+
+    <!-- Gripper joint (simple 1-DOF gripper) -->
+    <joint name="${prefix}_gripper" type="prismatic">
+      <parent link="${prefix}_hand_link"/>
+      <child link="${prefix}_gripper_link"/>
+      <origin xyz="0 0 ${-hand_length}" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>
+      <limit effort="10" lower="0" upper="0.04" velocity="0.5"/>
+      <dynamics damping="0.1" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}_gripper_link">
+      <visual>
+        <geometry>
+          <box size="0.02 0.08 0.03"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.02 0.08 0.03"/>
+        </geometry>
+      </collision>
+      <xacro:box_inertia mass="0.1" x="0.02" y="0.08" z="0.03"/>
+    </link>
+
+  </xacro:macro>
+
+</robot>

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<library path="humanoid_hardware">
+  <class name="humanoid_hardware/HumanoidHardwareInterface"
+         type="humanoid_hardware::HumanoidHardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Hardware interface for the humanoid robot. This interface communicates
+      with the robot's motors, sensors, and other actuators.
+    </description>
+  </class>
+</library>

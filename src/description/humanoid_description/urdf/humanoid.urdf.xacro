@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="humanoid">
+
+  <!-- Include macros -->
+  <xacro:include filename="$(find humanoid_description)/urdf/materials.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/urdf/common_properties.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/urdf/torso.urdf.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/urdf/head.urdf.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/urdf/arm.urdf.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/urdf/leg.urdf.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/urdf/sensors.urdf.xacro"/>
+
+  <!-- Parameters -->
+  <xacro:arg name="use_sim" default="true"/>
+  <xacro:arg name="use_fake_hardware" default="false"/>
+  <xacro:arg name="use_gazebo" default="true"/>
+
+  <xacro:property name="use_sim" value="$(arg use_sim)"/>
+  <xacro:property name="use_fake_hardware" value="$(arg use_fake_hardware)"/>
+  <xacro:property name="use_gazebo" value="$(arg use_gazebo)"/>
+
+  <!-- Base link (floating base for humanoid) -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <!-- Torso -->
+  <xacro:torso parent="base_link"/>
+
+  <!-- Head -->
+  <xacro:head parent="torso_link"/>
+
+  <!-- Arms -->
+  <xacro:arm prefix="left" parent="torso_link" reflect="1"/>
+  <xacro:arm prefix="right" parent="torso_link" reflect="-1"/>
+
+  <!-- Legs -->
+  <xacro:leg prefix="left" parent="base_link" reflect="1"/>
+  <xacro:leg prefix="right" parent="base_link" reflect="-1"/>
+
+  <!-- Sensors -->
+  <xacro:imu_sensor parent="torso_link"/>
+  <xacro:camera_sensor parent="head_link" name="head_camera"/>
+
+  <!-- ROS2 Control -->
+  <xacro:include filename="$(find humanoid_description)/urdf/ros2_control.urdf.xacro"/>
+  <xacro:humanoid_ros2_control
+    use_sim="${use_sim}"
+    use_fake_hardware="${use_fake_hardware}"/>
+
+  <!-- Gazebo -->
+  <xacro:if value="${use_gazebo}">
+    <xacro:include filename="$(find humanoid_description)/urdf/gazebo.urdf.xacro"/>
+    <xacro:humanoid_gazebo/>
+  </xacro:if>
+
+</robot>
