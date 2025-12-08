@@ -8,7 +8,7 @@
   <xacro:include filename="$(find humanoid_description)/xacro/common/inertials.xacro"/>
   <xacro:include filename="$(find humanoid_description)/xacro/common/transmission.xacro"/>
   <xacro:include filename="$(find humanoid_description)/xacro/joints/robot_joints.xacro"/>
-  <xacro:include filename="$(find humanoid_description)/xacro/links/robot_linksxacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/links/robot_links.xacro"/>
   <!-- Robot components -->
   <!-- TODO: Uncomment as xacro files are created
   <xacro:include filename="$(find humanoid_description)/xacro/torso/torso.xacro"/>
