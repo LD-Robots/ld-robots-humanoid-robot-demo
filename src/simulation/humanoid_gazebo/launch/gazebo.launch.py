@@ -153,10 +153,7 @@ def generate_launch_description():
             ])
         ),
         launch_arguments={
-            "gz_args": PathJoinSubstitution([
-                '-r ',  # Run on start
-                world_file
-            ]),
+            "gz_args": [world_file, " -r"],  # -r flag makes it start automatically
         }.items()
     )
 
@@ -186,63 +183,18 @@ def generate_launch_description():
         ],
         output='screen'
     )
-
-    # Controller spawner nodes using timers
-    # Wait for Gazebo's controller_manager to be ready
-    joint_state_broadcaster_spawner = TimerAction(
-        period=5.0,  # Wait 5 seconds for Gazebo to initialize
-        actions=[Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=[
-                "joint_state_broadcaster",
-                "--controller-manager",
-                "/controller_manager",
-                "--ros-args",
-                "--params-file",
-                controllers_file,
-            ],
-            parameters=[{'use_sim_time': use_sim_time}],
-            output="screen",
-        )]
+    
+    # Include the controller spawner launch file
+    control_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([
+                FindPackageShare('humanoid_control'),
+                'launch',
+                'control.launch.py'
+            ])
+        )
     )
-
-    leg_controller_spawner = TimerAction(
-        period=6.0,  # Wait 6 seconds (after joint_state_broadcaster)
-        actions=[Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=[
-                "leg_controller",
-                "--controller-manager",
-                "/controller_manager",
-                "--ros-args",
-                "--params-file",
-                controllers_file,
-            ],
-            parameters=[{'use_sim_time': use_sim_time}],
-            output="screen",
-        )]
-    )
-
-
-    left_arm_controller_spawner = TimerAction(
-        period=6.0,  # Wait 6 seconds (after joint_state_broadcaster)
-        actions=[Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=[
-                "left_arm_controller",
-                "--controller-manager",
-                "/controller_manager",
-                "--ros-args",
-                "--params-file",
-                controllers_file,
-            ],
-            parameters=[{'use_sim_time': use_sim_time}],
-            output="screen",
-        )]
-    )
+    
     # Create launch description and populate
     ld = LaunchDescription(declared_arguments)
 
@@ -256,9 +208,10 @@ def generate_launch_description():
     ld.add_action(spawn_robot)
     ld.add_action(clock_bridge)
 
-    # Add controller spawners with delays
-    ld.add_action(joint_state_broadcaster_spawner)
-    ld.add_action(leg_controller_spawner)
-    ld.add_action(left_arm_controller_spawner)
-
+    # Add controller spawners (with delay to wait for Gazebo)
+    control_launch_delayed = TimerAction(
+        period=5.0,
+        actions=[control_launch]
+    )
+    ld.add_action(control_launch_delayed)
     return ld

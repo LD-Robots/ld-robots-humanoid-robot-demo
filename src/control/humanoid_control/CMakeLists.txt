@@ -14,6 +14,18 @@ find_package(trajectory_msgs REQUIRED)
 find_package(humanoid_msgs REQUIRED)
 find_package(humanoid_utils REQUIRED)
 
+# Install config files
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
+  FILES_MATCHING PATTERN "*.yaml"
+)
+
+# Install launch files
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}/launch
+  FILES_MATCHING PATTERN "*.launch.py"
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
