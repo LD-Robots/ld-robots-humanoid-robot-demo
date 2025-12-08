@@ -7,9 +7,9 @@ Usage:
 
 Example:
     python3 extract_urdf_components.py \\
-        src/robot_description/arm_description/urdf/humanoid_arm_5dof.urdf \\
-        src/robot_description/arm_description/urdf/joints/arm_joints.xacro \\
-        src/robot_description/arm_description/urdf/links/arm_links.xacro
+        src/robot_description/humanoid_description/urdf/humanoid_arm_5dof.urdf \\
+        src/robot_description/humanoid_description/urdf/joints/arm_joints.xacro \\
+        src/robot_description/humanoid_description/urdf/links/arm_links.xacro
 """
 
 import xml.etree.ElementTree as ET
@@ -74,7 +74,7 @@ def format_element(element, indent_level=1):
 
 
 def fix_mesh_paths(element):
-    """Fix mesh paths from package://humanoid_arm_5dof/meshes/ to package://arm_description/meshes/visual/"""
+    """Fix mesh paths from package://humanoid_arm_5dof/meshes/ to package://humanoid_description/meshes/visual/"""
     # Find all mesh elements
     for mesh in element.iter('mesh'):
         filename = mesh.get('filename', '')
@@ -82,7 +82,7 @@ def fix_mesh_paths(element):
             # Extract just the mesh filename
             mesh_name = filename.split('/')[-1]
             # Update to new path
-            new_path = f'package://arm_description/meshes/visual/{mesh_name}'
+            new_path = f'package://humanoid_description/meshes/visual/{mesh_name}'
             mesh.set('filename', new_path)
 
 
@@ -113,9 +113,9 @@ def main():
         epilog="""
 Example:
     python3 extract_urdf_components.py \\
-        src/robot_description/arm_description/urdf/humanoid_arm_5dof.urdf \\
-        src/robot_description/arm_description/urdf/joints/arm_joints.xacro \\
-        src/robot_description/arm_description/urdf/links/arm_links.xacro
+        src/robot_description/humanoid_description/urdf/humanoid_arm_5dof.urdf \\
+        src/robot_description/humanoid_description/urdf/joints/arm_joints.xacro \\
+        src/robot_description/humanoid_description/urdf/links/arm_links.xacro
         """
     )
 
