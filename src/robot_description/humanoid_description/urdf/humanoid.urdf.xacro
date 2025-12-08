@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<robot name="humanoid" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ==================== INCLUDES ==================== -->
+
+  <!-- Common properties and macros -->
+  <xacro:include filename="$(find humanoid_description)/xacro/common/materials.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/common/inertials.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/common/transmission.xacro"/>
+
+  <!-- Robot components -->
+  <!-- TODO: Uncomment as xacro files are created
+  <xacro:include filename="$(find humanoid_description)/xacro/torso/torso.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/head/head.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/arms/arm.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/hands/hand.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/legs/leg.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/sensors/cameras.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/sensors/imu.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/sensors/force_torque.xacro"/>
+  -->
+
+  <!-- ==================== PARAMETERS ==================== -->
+
+  <!-- Global parameters -->
+  <xacro:property name="PI" value="3.14159265359"/>
+
+  <!-- Robot dimensions (placeholder values - adjust based on actual robot) -->
+  <xacro:property name="torso_height" value="0.5"/>
+  <xacro:property name="torso_width" value="0.3"/>
+  <xacro:property name="torso_depth" value="0.2"/>
+
+  <!-- Joint limits (placeholder values) -->
+  <xacro:property name="joint_damping" value="0.5"/>
+  <xacro:property name="joint_friction" value="0.1"/>
+  <xacro:property name="joint_effort_limit" value="100.0"/>
+  <xacro:property name="joint_velocity_limit" value="2.0"/>
+
+  <!-- ==================== BASE LINK ==================== -->
+
+  <!-- Base footprint (on ground) -->
+  <link name="base_footprint">
+    <xacro:point_mass m="0.001"/>
+  </link>
+
+  <!-- Base link (torso base) -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${torso_depth} ${torso_width} ${torso_height}"/>
+      </geometry>
+      <material name="robot_body"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${torso_depth} ${torso_width} ${torso_height}"/>
+      </geometry>
+    </collision>
+
+    <!-- TODO: Replace with actual inertial values -->
+    <xacro:box_inertia m="10.0" x="${torso_depth}" y="${torso_width}" z="${torso_height}"/>
+  </link>
+
+  <!-- Base footprint to base link joint -->
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0.5" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== COMPONENT INSTANTIATION ==================== -->
+
+  <!-- TODO: Instantiate robot components here -->
+
+  <!-- Torso/Spine -->
+  <!-- <xacro:torso parent="base_link"/> -->
+
+  <!-- Head -->
+  <!-- <xacro:head parent="torso_upper_link"/> -->
+
+  <!-- Left Arm -->
+  <!-- <xacro:arm prefix="left" parent="torso_upper_link">
+    <origin xyz="0 0.15 0.4" rpy="0 0 0"/>
+  </xacro:arm> -->
+
+  <!-- Right Arm -->
+  <!-- <xacro:arm prefix="right" parent="torso_upper_link">
+    <origin xyz="0 -0.15 0.4" rpy="0 0 0"/>
+  </xacro:arm> -->
+
+  <!-- Left Hand -->
+  <!-- <xacro:hand prefix="left" parent="left_wrist_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:hand> -->
+
+  <!-- Right Hand -->
+  <!-- <xacro:hand prefix="right" parent="right_wrist_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:hand> -->
+
+  <!-- Left Leg -->
+  <!-- <xacro:leg prefix="left" parent="base_link">
+    <origin xyz="0 0.1 0" rpy="0 0 0"/>
+  </xacro:leg> -->
+
+  <!-- Right Leg -->
+  <!-- <xacro:leg prefix="right" parent="base_link">
+    <origin xyz="0 -0.1 0" rpy="0 0 0"/>
+  </xacro:leg> -->
+
+  <!-- Sensors -->
+  <!-- <xacro:cameras parent="head_link"/> -->
+  <!-- <xacro:imu parent="torso_link"/> -->
+
+  <!-- ==================== ROS2_CONTROL ==================== -->
+
+  <!-- TODO: Add ros2_control hardware interface configuration -->
+  <!--
+  <ros2_control name="humanoid_hardware" type="system">
+    <hardware>
+      <plugin>humanoid_hardware/HumanoidHardwareInterface</plugin>
+    </hardware>
+  </ros2_control>
+  -->
+
+</robot>

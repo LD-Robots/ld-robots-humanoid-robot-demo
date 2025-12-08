@@ -1,0 +1,60 @@
+# ROS 2 / Colcon
+build/
+install/
+log/
+*.pyc
+__pycache__/
+*.egg-info/
+*.so
+*.o
+*.a
+
+# IDE / Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Generated files
+*.urdf
+*.gv
+*.pdf
+
+# Rosbag
+*.bag
+*.db3
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+
+# Python
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Gazebo
+.gazebo/
+
+# RViz
+*.rviz~
+
+# Documentation build
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# System files
+Thumbs.db
