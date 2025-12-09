@@ -75,6 +75,42 @@ zmp_stabilizer:
     # Gravity constant (m/s^2)
     gravity: 9.81
 
+# Leg Balance Controller Parameters
+leg_balance_controller:
+  ros__parameters:
+    # KDL chain definitions
+    left_leg_chain_base: "base"
+    left_leg_chain_tip: "LFootBushing_GPF_1517_12"
+    right_leg_chain_base: "base"
+    right_leg_chain_tip: "RFootBushing_GPF_1517_12"
+
+    # Control loop rate (Hz)
+    control_rate: 100.0
+
+    # Conversion gains from torque to position
+    # Lower values = less aggressive, more stable
+    ankle_torque_to_position_gain: 0.005  # rad/Nm (reduced from 0.01)
+    hip_torque_to_position_gain: 0.005    # rad/Nm (reduced from 0.01)
+
+    # Dead-zone thresholds (ignore small compensations)
+    ankle_torque_deadzone: 0.5   # Nm - ignore torques below this
+    hip_torque_deadzone: 0.5     # Nm - ignore torques below this
+    body_tilt_deadzone: 0.05     # rad (~3 degrees) - don't react to small tilts
+
+    # Only apply leg control when needed
+    enable_only_when_unstable: true  # Only act when ZMP is unstable or tilt is large
+
+    # Auto-calibration parameters
+    enable_auto_calibration: false  # Disabled by default - enable after tuning
+    calibration_rate: 0.01  # Learning rate (reduced from 0.1 for slower learning)
+
+    # Safety limits
+    max_joint_velocity: 0.5  # rad/s - reduced for smoother motion
+    max_position_change: 0.05  # rad - maximum position change per cycle
+
+    # IK solver parameters
+    ik_solver_epsilon: 0.0001  # Convergence threshold for IK
+
 # Balance System Integration Parameters
 balance_system:
   ros__parameters:
@@ -85,6 +121,7 @@ balance_system:
     enable_imu_feedback: true
     enable_com_control: true
     enable_zmp_stabilization: true
+    enable_leg_control: true
 
     # Emergency stop parameters
     # System will trigger emergency stop if these limits are exceeded

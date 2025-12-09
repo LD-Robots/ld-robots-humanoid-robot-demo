@@ -88,6 +88,20 @@ def launch_setup(context, *args, **kwargs):
                 ],
                 extra_arguments=[{'use_intra_process_comms': True}],
             ),
+            ComposableNode(
+                package='balance_control',
+                plugin='balance_control::LegBalanceController',
+                name='leg_balance_controller',
+                parameters=[
+                    config_file,
+                    {'use_sim_time': use_sim_time}
+                ],
+                extra_arguments=[{'use_intra_process_comms': True}],
+                remappings=[
+                    ('/joint_states', '/joint_states'),
+                    ('/robot_description', '/robot_description'),
+                ]
+            ),
         ],
         output='screen',
     )

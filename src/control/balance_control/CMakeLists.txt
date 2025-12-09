@@ -67,6 +67,14 @@ target_compile_features(zmp_stabilizer PUBLIC cxx_std_17)
 ament_target_dependencies(zmp_stabilizer ${dependencies})
 rclcpp_components_register_nodes(zmp_stabilizer "balance_control::ZMPStabilizer")
 
+# Leg Balance Controller Node
+add_library(leg_balance_controller SHARED
+  src/leg_balance_controller.cpp
+)
+target_compile_features(leg_balance_controller PUBLIC cxx_std_17)
+ament_target_dependencies(leg_balance_controller ${dependencies})
+rclcpp_components_register_nodes(leg_balance_controller "balance_control::LegBalanceController")
+
 # Create a component_container executable for running all nodes
 find_package(rclcpp_components REQUIRED)
 add_executable(balance_control_node src/balance_control_node.cpp)
@@ -75,6 +83,7 @@ target_link_libraries(balance_control_node
   imu_feedback_processor
   com_controller
   zmp_stabilizer
+  leg_balance_controller
 )
 ament_target_dependencies(balance_control_node ${dependencies})
 
@@ -83,6 +92,7 @@ install(TARGETS
   imu_feedback_processor
   com_controller
   zmp_stabilizer
+  leg_balance_controller
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -121,6 +131,7 @@ ament_export_libraries(
   imu_feedback_processor
   com_controller
   zmp_stabilizer
+  leg_balance_controller
 )
 ament_export_dependencies(${dependencies})
 
