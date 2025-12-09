@@ -1,0 +1,97 @@
+# Balance Control System Parameters
+# This file contains all tunable parameters for the balance control system
+
+# IMU Feedback Processor Parameters
+imu_feedback_processor:
+  ros__parameters:
+    # Complementary filter coefficient (0.0-1.0)
+    # Higher values trust gyroscope more, lower values trust accelerometer more
+    complementary_filter_alpha: 0.98
+
+    # Gyroscope bias detection threshold (rad/s)
+    # Angular velocity below this is considered zero (for bias estimation)
+    gyro_bias_threshold: 0.01
+
+    # Maximum allowable tilt angle before warning (radians)
+    # Default: 0.5 rad ≈ 28.6 degrees
+    max_tilt_angle: 0.5
+
+    # Update rate (Hz) - should match IMU sensor rate
+    update_rate: 100.0
+
+# Center of Mass (CoM) Controller Parameters
+com_controller:
+  ros__parameters:
+    # Robot base link name
+    base_link: "base_link"
+
+    # PD controller gains for CoM position control
+    # Higher Kp = stronger position correction
+    # Higher Kd = more damping (velocity feedback)
+    com_kp: 1.0
+    com_kd: 0.1
+
+    # Weight distribution between ankle and hip compensation
+    # ankle_weight + hip_weight should approximately equal 1.0
+    # Higher ankle weight = more ankle torque, less hip movement
+    ankle_weight: 0.7
+    hip_weight: 0.3
+
+    # Safety limits
+    max_ankle_torque: 10.0  # Nm
+    max_hip_torque: 15.0    # Nm
+
+    # CoM estimation parameters
+    com_height_nominal: 0.5  # meters - approximate standing CoM height
+
+# Zero Moment Point (ZMP) Stabilizer Parameters
+zmp_stabilizer:
+  ros__parameters:
+    # Foot dimensions (meters)
+    # These define the support polygon size
+    foot_length: 0.20  # 20 cm fore-aft
+    foot_width: 0.10   # 10 cm medial-lateral
+
+    # Foot separation (distance between feet in double support)
+    foot_separation: 0.20  # 20 cm hip width
+
+    # PD controller gains for ZMP stabilization
+    # Higher gains = more aggressive ZMP correction
+    zmp_kp: 2.0
+    zmp_kd: 0.5
+
+    # Safety margin from support polygon edge (meters)
+    # ZMP should stay this far inside the polygon boundary
+    safety_margin: 0.02  # 2 cm
+
+    # Maximum ZMP correction torque (Nm)
+    max_zmp_torque: 20.0
+
+    # Torque blending weights (CoM vs ZMP)
+    # ZMP gets higher weight for immediate stability
+    com_torque_weight: 0.4
+    zmp_torque_weight: 0.6
+
+    # Gravity constant (m/s^2)
+    gravity: 9.81
+
+# Balance System Integration Parameters
+balance_system:
+  ros__parameters:
+    # Overall system enable/disable
+    enable_balance_control: true
+
+    # Enable individual controllers
+    enable_imu_feedback: true
+    enable_com_control: true
+    enable_zmp_stabilization: true
+
+    # Emergency stop parameters
+    # System will trigger emergency stop if these limits are exceeded
+    emergency_tilt_limit: 0.8      # radians (~45 degrees)
+    emergency_com_velocity: 2.0    # m/s
+    emergency_zmp_distance: 0.15   # meters from polygon center
+
+    # Logging and debugging
+    publish_debug_topics: true
+    log_level: "info"  # debug, info, warn, error
