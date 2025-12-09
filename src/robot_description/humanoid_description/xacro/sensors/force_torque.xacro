@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ==================== FORCE-TORQUE SENSOR MACRO (Like a scale/pressure sensor) ==================== -->
+
+  <!--
+    Force-Torque Sensor for Foot Pressure Measurement (like a scale)
+
+    This creates a virtual "pressure plate" that measures forces transmitted through it.
+    It works by creating a very stiff prismatic joint that allows tiny vertical movement
+    but measures all forces transmitted through it (like a load cell in a scale).
+
+    Measures:
+    - Normal force (weight/pressure) in Z direction
+    - Shear forces in X and Y
+    - Torques around all axes (for CoP calculation)
+
+    Parameters:
+    - parent_link: Parent foot link
+    - sensor_name: Unique name for this sensor
+    - topic: ROS topic for publishing sensor data
+    - position: XYZ position relative to parent link (should be at bottom of foot)
+    - rpy: Roll Pitch Yaw orientation relative to parent link
+    - box_size: Size of pressure plate [length width height] in meters
+    - update_rate: Sensor update frequency (Hz)
+  -->
+  <xacro:macro name="force_torque_sensor" params="parent_link sensor_name topic position:='0 0 0' rpy:='0 0 0' box_size:='0.08 0.06 0.01' update_rate:=100.0">
+
+    <!-- Create a pressure plate link -->
+    <link name="${sensor_name}_link">
+      <inertial>
+        <mass value="0.01"/>  <!-- Small but not negligible -->
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.00001" ixy="0.0" ixz="0.0"
+                 iyy="0.00001" iyz="0.0"
+                 izz="0.00001"/>
+      </inertial>
+
+      <!-- Collision box for pressure plate -->
+      <collision name="${sensor_name}_collision">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${box_size}"/>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+
+      <!-- Visual for debugging (semi-transparent green pressure plate) -->
+      <visual name="${sensor_name}_visual">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${box_size}"/>
+        </geometry>
+        <material name="pressure_sensor_material">
+          <color rgba="0 1 0 0.5"/>
+        </material>
+      </visual>
+    </link>
+
+    <!--
+      Prismatic joint (acts like a very stiff spring/load cell)
+      Allows minimal vertical movement but transmits forces for measurement
+    -->
+    <joint name="${sensor_name}_joint" type="prismatic">
+      <parent link="${parent_link}"/>
+      <child link="${sensor_name}_link"/>
+      <origin xyz="${position}" rpy="${rpy}"/>
+      <axis xyz="0 0 1"/>  <!-- Can compress vertically only -->
+      <limit effort="10000.0" lower="-0.0001" upper="0.0001" velocity="0.01"/>
+      <dynamics damping="100000.0" friction="0.0"/>  <!-- Very stiff -->
+    </joint>
+
+    <!-- Gazebo: Make joint very stiff (like a load cell) -->
+    <gazebo reference="${sensor_name}_joint">
+      <implicitSpringDamper>true</implicitSpringDamper>
+      <springStiffness>1000000.0</springStiffness>  <!-- Very high stiffness -->
+      <springReference>0.0</springReference>
+    </gazebo>
+
+    <!-- Force-Torque Sensor on the prismatic joint -->
+    <gazebo reference="${sensor_name}_joint">
+      <sensor name="${sensor_name}" type="force_torque">
+        <always_on>true</always_on>
+        <update_rate>${update_rate}</update_rate>
+        <visualize>true</visualize>
+        <topic>${topic}</topic>
+
+        <force_torque>
+          <frame>child</frame>
+          <measure_direction>child_to_parent</measure_direction>
+
+          <!-- Noise model (realistic sensor noise) -->
+          <force>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.1</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.1</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.5</stddev>  <!-- Normal force (weight) -->
+              </noise>
+            </z>
+          </force>
+
+          <torque>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.01</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.01</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.01</stddev>
+              </noise>
+            </z>
+          </torque>
+        </force_torque>
+
+        <!-- Plugin to enable force-torque sensor in Gazebo Harmonic -->
+        <plugin filename="gz-sim-forcetorque-system" name="gz::sim::systems::ForceTorque"/>
+
+      </sensor>
+    </gazebo>
+
+  </xacro:macro>
+
+  <!-- ==================== FOOT PRESSURE SENSOR MACRO ==================== -->
+
+  <!--
+    Foot Pressure Sensor Configuration (like a bathroom scale)
+
+    Places a force-torque sensor at the bottom of the foot to measure ground reaction forces.
+    Works exactly like a scale - measures weight/force pressing down on it.
+
+    Parameters:
+    - foot_link: The foot link name
+    - prefix: 'left' or 'right'
+    - foot_bottom_offset: Y offset to bottom of foot from link origin
+    - sensor_rpy: Roll Pitch Yaw orientation to align sensor flat on ground
+  -->
+  <xacro:macro name="foot_contact_sensor" params="foot_link prefix foot_bottom_offset:='-0.05' sensor_rpy:='0 0 0'">
+
+    <!-- Force-torque sensor at bottom of foot (like a pressure plate) -->
+    <xacro:force_torque_sensor
+      parent_link="${foot_link}"
+      sensor_name="${prefix}_foot_contact"
+      topic="/${prefix}_foot/contact"
+      position="0 ${foot_bottom_offset} 0"
+      rpy="${sensor_rpy}"
+      box_size="0.08 0.06 0.01"
+      update_rate="100.0"/>
+
+  </xacro:macro>
+
+</robot>

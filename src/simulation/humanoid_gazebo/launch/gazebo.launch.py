@@ -193,6 +193,17 @@ def generate_launch_description():
         ],
         output='screen'
     )
+
+    # Force-Torque sensors bridge - Foot pressure measurement (like scales)
+    ft_sensors_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+            '/left_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+            '/right_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+        ],
+        output='screen'
+    )
     
     # Include the controller spawner launch file
     control_launch = IncludeLaunchDescription(
@@ -218,6 +229,7 @@ def generate_launch_description():
     ld.add_action(spawn_robot)
     ld.add_action(clock_bridge)
     ld.add_action(imu_bridge)
+    ld.add_action(ft_sensors_bridge)
 
     # Add controller spawners (with delay to wait for Gazebo)
     control_launch_delayed = TimerAction(

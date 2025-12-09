@@ -3,7 +3,8 @@
   <world name="empty_world">
 
     <!-- Physics -->
-    <physics name="1ms" type="ignored">
+    <!-- Enable physics so collisions/contact sensors can generate events -->
+    <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>

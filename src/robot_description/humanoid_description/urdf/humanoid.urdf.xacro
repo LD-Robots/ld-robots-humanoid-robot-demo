@@ -12,6 +12,7 @@
   <xacro:include filename="$(find humanoid_description)/xacro/joints/robot_joints.xacro"/>
   <xacro:include filename="$(find humanoid_description)/xacro/links/robot_links.xacro"/>
   <xacro:include filename="$(find humanoid_description)/xacro/sensors/imu.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/sensors/force_torque.xacro"/>
   <!-- Robot components -->
   <!-- TODO: Uncomment as xacro files are created
   <xacro:include filename="$(find humanoid_description)/xacro/torso/torso.xacro"/>
@@ -107,5 +108,20 @@
 
   <!-- IMU Sensor - Instantiate the IMU sensor on the 'imu' link -->
   <xacro:imu_sensor parent_link="imu" topic="/imu/data" update_rate="100.0"/>
+
+  <!-- Contact Sensors - Detect ground contact on feet -->
+  <!-- Left foot: Z+ points down, so rotate +90deg around X to make sensor flat -->
+  <xacro:foot_contact_sensor
+    foot_link="LFootBushing_GPF_1517_12"
+    prefix="left"
+    foot_bottom_offset="0.1"
+    sensor_rpy="1.5708 0 0"/>
+
+  <!-- Right foot: Z- points down, so rotate -90deg around X to make sensor flat -->
+  <xacro:foot_contact_sensor
+    foot_link="RFootBushing_GPF_1517_12"
+    prefix="right"
+    foot_bottom_offset="-0.1"
+    sensor_rpy="-1.5708 0 0"/>
 
 </robot>
