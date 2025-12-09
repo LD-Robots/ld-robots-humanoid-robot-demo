@@ -36,19 +36,31 @@
                  izz="0.00001"/>
       </inertial>
 
-      <!-- Collision box for pressure plate -->
+      <!-- Collision box for pressure plate (realistic rubber pad) -->
       <collision name="${sensor_name}_collision">
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <cylinder radius="0.007" length="0.005"/> 
+          <cylinder radius="0.007" length="0.005"/>
         </geometry>
         <surface>
           <friction>
             <ode>
-              <mu>1.0</mu>
-              <mu2>1.0</mu2>
+              <mu>1.5</mu>   <!-- High friction like rubber -->
+              <mu2>1.5</mu2>
             </ode>
           </friction>
+          <contact>
+            <ode>
+              <kp>500000.0</kp>  <!-- Soft rubber-like contact -->
+              <kd>100.0</kd>     <!-- Natural damping -->
+              <max_vel>1.0</max_vel>
+              <min_depth>0.0005</min_depth>
+            </ode>
+          </contact>
+          <bounce>
+            <restitution_coefficient>0.0</restitution_coefficient>  <!-- No bounce -->
+            <threshold>0.01</threshold>
+          </bounce>
         </surface>
       </collision>
 
@@ -65,23 +77,25 @@
     </link>
 
     <!--
-      Prismatic joint (acts like a very stiff spring/load cell)
-      Allows minimal vertical movement but transmits forces for measurement
+      Prismatic joint (realistic load cell behavior)
+      Mimics a real force sensor with natural compliance and damping
+      Similar to commercial force plates like AMTI or Kistler
     -->
     <joint name="${sensor_name}_joint" type="prismatic">
       <parent link="${parent_link}"/>
       <child link="${sensor_name}_link"/>
       <origin xyz="${position}" rpy="${rpy}"/>
       <axis xyz="0 1 0"/>  <!-- Can compress vertically only -->
-      <limit effort="1000.0" lower="-0.001" upper="0.001" velocity="0.1"/>
-      <dynamics damping="100.0" friction="10.0"/>  <!-- Very stiff -->
+      <limit effort="2000.0" lower="-0.005" upper="0.001" velocity="1.0"/>
+      <dynamics damping="200.0" friction="2.0"/>  <!-- Realistic damping -->
     </joint>
 
-    <!-- Gazebo: Make joint very stiff (like a load cell) -->
+    <!-- Gazebo: Realistic load cell stiffness (like commercial force plates) -->
     <gazebo reference="${sensor_name}_joint">
       <implicitSpringDamper>true</implicitSpringDamper>
-      <springStiffness>100000.0</springStiffness>  <!-- Very high stiffness -->
+      <springStiffness>20000.0</springStiffness>  <!-- ~0.5mm deflection at 100N (realistic) -->
       <springReference>0.0</springReference>
+      <provideFeedback>true</provideFeedback>
     </gazebo>
 
     <!-- Force-Torque Sensor on the prismatic joint -->
