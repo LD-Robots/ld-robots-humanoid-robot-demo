@@ -53,8 +53,8 @@
             </friction>
             <contact>
               <ode>
-                <kp>1e7</kp>
-                <kd>1.0</kd>
+                <kp>50000.0</kp>
+                <kd>10.0</kd>
               </ode>
             </contact>
           </surface>

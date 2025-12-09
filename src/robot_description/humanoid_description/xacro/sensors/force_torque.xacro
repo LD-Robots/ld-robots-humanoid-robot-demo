@@ -24,7 +24,7 @@
     - box_size: Size of pressure plate [length width height] in meters
     - update_rate: Sensor update frequency (Hz)
   -->
-  <xacro:macro name="force_torque_sensor" params="parent_link sensor_name topic position:='0 0 0' rpy:='0 0 0' box_size:='0.08 0.06 0.01' update_rate:=100.0">
+  <xacro:macro name="force_torque_sensor" params="parent_link sensor_name topic position:='0 0 0' rpy:='0 0 0' update_rate:=100.0">
 
     <!-- Create a pressure plate link -->
     <link name="${sensor_name}_link">
@@ -40,7 +40,7 @@
       <collision name="${sensor_name}_collision">
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <box size="${box_size}"/>
+          <cylinder radius="0.007" length="0.005"/> 
         </geometry>
         <surface>
           <friction>
@@ -56,7 +56,7 @@
       <visual name="${sensor_name}_visual">
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <box size="${box_size}"/>
+          <cylinder radius="0.007" length="0.005"/> 
         </geometry>
         <material name="pressure_sensor_material">
           <color rgba="0 1 0 0.5"/>
@@ -72,15 +72,15 @@
       <parent link="${parent_link}"/>
       <child link="${sensor_name}_link"/>
       <origin xyz="${position}" rpy="${rpy}"/>
-      <axis xyz="0 0 1"/>  <!-- Can compress vertically only -->
-      <limit effort="10000.0" lower="-0.0001" upper="0.0001" velocity="0.01"/>
-      <dynamics damping="100000.0" friction="0.0"/>  <!-- Very stiff -->
+      <axis xyz="0 1 0"/>  <!-- Can compress vertically only -->
+      <limit effort="1000.0" lower="-0.001" upper="0.001" velocity="0.1"/>
+      <dynamics damping="100.0" friction="10.0"/>  <!-- Very stiff -->
     </joint>
 
     <!-- Gazebo: Make joint very stiff (like a load cell) -->
     <gazebo reference="${sensor_name}_joint">
       <implicitSpringDamper>true</implicitSpringDamper>
-      <springStiffness>1000000.0</springStiffness>  <!-- Very high stiffness -->
+      <springStiffness>100000.0</springStiffness>  <!-- Very high stiffness -->
       <springReference>0.0</springReference>
     </gazebo>
 
@@ -162,16 +162,15 @@
     - foot_bottom_offset: Y offset to bottom of foot from link origin
     - sensor_rpy: Roll Pitch Yaw orientation to align sensor flat on ground
   -->
-  <xacro:macro name="foot_contact_sensor" params="foot_link prefix foot_bottom_offset:='-0.05' sensor_rpy:='0 0 0'">
+  <xacro:macro name="foot_contact_sensor" params="foot_link prefix position:='0 0 0' sensor_rpy:='0 0 0'">
 
     <!-- Force-torque sensor at bottom of foot (like a pressure plate) -->
     <xacro:force_torque_sensor
       parent_link="${foot_link}"
       sensor_name="${prefix}_foot_contact"
       topic="/${prefix}_foot/contact"
-      position="0 ${foot_bottom_offset} 0"
+      position="${position}"
       rpy="${sensor_rpy}"
-      box_size="0.08 0.06 0.01"
       update_rate="100.0"/>
 
   </xacro:macro>

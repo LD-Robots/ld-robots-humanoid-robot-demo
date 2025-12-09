@@ -166,7 +166,7 @@ def generate_launch_description():
             '-topic', 'robot_description',
             '-x', '0.0',
             '-y', '0.0',
-            '-z', '0.0',
+            '-z', '1.25',
             '-R', '0.0',
             '-P', '0.0',
             '-Y', '0.0'
@@ -194,13 +194,21 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Force-Torque sensors bridge - Foot pressure measurement (like scales)
+    # Force-Torque sensors bridge - Quad foot pressure sensors (8 total: 4 per foot)
     ft_sensors_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
         arguments=[
-            '/left_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
-            '/right_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+            # Left foot sensors (4 corners)
+            '/left_heel_lateral_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+            '/left_heel_medial_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+            '/left_toe_lateral_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+            '/left_toe_medial_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+            # Right foot sensors (4 corners)
+            '/right_heel_lateral_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+            '/right_heel_medial_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+            '/right_toe_lateral_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+            '/right_toe_medial_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
         ],
         output='screen'
     )
