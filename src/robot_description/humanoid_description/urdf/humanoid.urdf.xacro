@@ -11,6 +11,7 @@
   <xacro:include filename="$(find humanoid_description)/xacro/common/gazebo.xacro"/>
   <xacro:include filename="$(find humanoid_description)/xacro/joints/robot_joints.xacro"/>
   <xacro:include filename="$(find humanoid_description)/xacro/links/robot_links.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/sensors/imu.xacro"/>
   <!-- Robot components -->
   <!-- TODO: Uncomment as xacro files are created
   <xacro:include filename="$(find humanoid_description)/xacro/torso/torso.xacro"/>
@@ -103,6 +104,8 @@
 
   <!-- Sensors -->
   <!-- <xacro:cameras parent="head_link"/> -->
-  <!-- <xacro:imu parent="torso_link"/> -->
+
+  <!-- IMU Sensor - Instantiate the IMU sensor on the 'imu' link -->
+  <xacro:imu_sensor parent_link="imu" topic="/imu/data" update_rate="100.0"/>
 
 </robot>

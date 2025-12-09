@@ -184,6 +184,16 @@ def generate_launch_description():
         output='screen'
     )
     
+    # IMU bridge - Bridge Gazebo IMU topic to ROS 2
+    imu_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+            '/imu/data@sensor_msgs/msg/Imu@gz.msgs.IMU'
+        ],
+        output='screen'
+    )
+    
     # Include the controller spawner launch file
     control_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -207,6 +217,7 @@ def generate_launch_description():
     ld.add_action(gazebo_sim)
     ld.add_action(spawn_robot)
     ld.add_action(clock_bridge)
+    ld.add_action(imu_bridge)
 
     # Add controller spawners (with delay to wait for Gazebo)
     control_launch_delayed = TimerAction(
