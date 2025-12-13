@@ -195,23 +195,23 @@ def generate_launch_description():
     )
 
     # Force-Torque sensors bridge - Quad foot pressure sensors (8 total: 4 per foot)
-    ft_sensors_bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        arguments=[
-            # Left foot sensors (4 corners)
-            '/left_heel_lateral_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
-            '/left_heel_medial_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
-            '/left_toe_lateral_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
-            '/left_toe_medial_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
-            # Right foot sensors (4 corners)
-            '/right_heel_lateral_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
-            '/right_heel_medial_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
-            '/right_toe_lateral_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
-            '/right_toe_medial_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
-        ],
-        output='screen'
-    )
+    # ft_sensors_bridge = Node(
+    #     package='ros_gz_bridge',
+    #     executable='parameter_bridge',
+    #     arguments=[
+    #         # Left foot sensors (4 corners)
+    #         '/left_heel_lateral_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+    #         '/left_heel_medial_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+    #         '/left_toe_lateral_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+    #         '/left_toe_medial_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+    #         # Right foot sensors (4 corners)
+    #         '/right_heel_lateral_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+    #         '/right_heel_medial_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+    #         '/right_toe_lateral_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+    #         '/right_toe_medial_foot/contact@geometry_msgs/msg/WrenchStamped@gz.msgs.Wrench',
+    #     ],
+    #     output='screen'
+    # )
     
     # Include the controller spawner launch file
     control_launch = IncludeLaunchDescription(
@@ -237,7 +237,7 @@ def generate_launch_description():
     ld.add_action(spawn_robot)
     ld.add_action(clock_bridge)
     ld.add_action(imu_bridge)
-    ld.add_action(ft_sensors_bridge)
+    # ld.add_action(ft_sensors_bridge)
 
     # Add controller spawners (with delay to wait for Gazebo)
     control_launch_delayed = TimerAction(

@@ -111,7 +111,7 @@
 
   <!-- Contact Sensors - Detect ground contact on feet -->
   <!-- Left foot: Z+ points down, so rotate +90deg around X to make sensor flat -->
-  <xacro:foot_contact_sensor
+  <!-- <xacro:foot_contact_sensor
     foot_link="LFootBushing_GPF_1517_12"
     prefix="left_heel_medial"
     position="0.061 0.06 0.0055"
@@ -133,12 +133,12 @@
     foot_link="LFootBushing_GPF_1517_12"
     prefix="left_toe_lateral"
     position="-0.105 0.06 -0.035"
-    sensor_rpy="1.5708 0 0"/>
+    sensor_rpy="1.5708 0 0"/> -->
 
 
   <!-- Right foot: Z- points down, so rotate -90deg around X to make sensor flat -->
 
-  <xacro:foot_contact_sensor
+  <!-- <xacro:foot_contact_sensor
     foot_link="RFootBushing_GPF_1517_12"
     prefix="right_heel_medial"
     position="0.061 -0.06 0.0055"
@@ -160,6 +160,6 @@
     foot_link="RFootBushing_GPF_1517_12"
     prefix="right_toe_lateral"
     position="-0.105 -0.06 -0.035"
-    sensor_rpy="1.5708 0 0"/>
+    sensor_rpy="1.5708 0 0"/> -->
 
 </robot>
