@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<mujoco model="humanoid_from_urdf">
+  <!-- Compiler settings -->
+  <compiler angle="radian"
+            meshdir="/home/andrei/ros2_ws_demo/ld-robots-humanoid-robot-demo/src/robot_description/humanoid_description/urdf/../meshes"
+            autolimits="true"
+            balanceinertia="true"
+            discardvisual="false"/>
+
+  <!-- Options -->
+  <option timestep="0.002"
+          iterations="50"
+          solver="Newton"
+          gravity="0 0 -9.81"/>
+
+  <!-- Visual settings -->
+  <visual>
+    <global offwidth="1920" offheight="1080"/>
+    <quality shadowsize="4096"/>
+    <map force="0.1" zfar="50"/>
+  </visual>
+
+  <!-- Assets -->
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512"/>
+    <texture name="texplane" type="2d" builtin="checker" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" width="512" height="512" mark="cross" markrgb="1 1 1"/>
+    <material name="matplane" reflectance="0.3" texture="texplane" texrepeat="1 1" texuniform="true"/>
+  </asset>
+
+  <!-- Include URDF -->
+  <include file="/home/andrei/ros2_ws_demo/ld-robots-humanoid-robot-demo/src/robot_description/humanoid_description/urdf/robot.urdf"/>
+
+  <!-- Modify worldbody -->
+  <worldbody>
+    <!-- Ground plane -->
+    <geom name="floor" type="plane" size="10 10 0.1" material="matplane"/>
+
+    <!-- Lighting -->
+    <light directional="true" diffuse="0.8 0.8 0.8" specular="0.2 0.2 0.2" pos="0 0 5" dir="0 0 -1"/>
+    <light directional="true" diffuse="0.4 0.4 0.4" specular="0.1 0.1 0.1" pos="0 0 4" dir="0 1 -0.5"/>
+  </worldbody>
+
+  <!-- Actuators (will be auto-generated from joint limits) -->
+  <actuator>
+    <!-- Position servos for all joints -->
+  </actuator>
+
+  <!-- Keyframes for initial poses -->
+  <keyframe>
+    <key name="standing"
+         qpos="0 0 0.89 1 0 0 0
+               0 0 0 0 0 0 0 0 0 0
+               0 0 0 0 0 0 0 0 0 0"
+         ctrl="0 0 0 0 0 0 0 0 0 0
+               0 0 0 0 0 0 0 0 0 0"/>
+  </keyframe>
+
+</mujoco>

@@ -1,0 +1,162 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="assy_forurdf_kdheadless">
+  <compiler angle="radian" meshdir="/home/andrei/ros2_ws_demo/ld-robots-humanoid-robot-demo/src/robot_description/humanoid_description/meshes" balanceinertia="true" />
+  <option timestep="0.002" iterations="50" solver="Newton" gravity="0 0 -9.81" />
+  <visual>
+    <global offwidth="1920" offheight="1080" />
+  </visual>
+  <asset>
+    <texture name="texplane" type="2d" builtin="checker" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" width="512" height="512" />
+    <material name="matplane" texture="texplane" texrepeat="1 1" />
+    <mesh name="collision/KD_D_102L_L_Hip_Yoke_Drive.collision" file="collision/KD_D_102L_L_Hip_Yoke_Drive.collision.stl" />
+    <mesh name="collision/L_Hip_Roll_RS03.collision" file="collision/L_Hip_Roll_RS03.collision.stl" />
+    <mesh name="collision/KD_D_301L_L_Femur_Lower_Drive.collision" file="collision/KD_D_301L_L_Femur_Lower_Drive.collision.stl" />
+    <mesh name="collision/KD_D_401L_L_Shin_Drive.collision" file="collision/KD_D_401L_L_Shin_Drive.collision.stl" />
+    <mesh name="collision/LFootBushing_GPF_1517_12.collision" file="collision/LFootBushing_GPF_1517_12.collision.stl" />
+    <mesh name="collision/KC_C_101R_ShldYokeDrive.collision" file="collision/KC_C_101R_ShldYokeDrive.collision.stl" />
+    <mesh name="collision/RS03_3.collision" file="collision/RS03_3.collision.stl" />
+    <mesh name="collision/KC_C_202R.collision" file="collision/KC_C_202R.collision.stl" />
+    <mesh name="collision/KC_C_401R_R_UpForearmDrive.collision" file="collision/KC_C_401R_R_UpForearmDrive.collision.stl" />
+    <mesh name="collision/PRT0001.collision" file="collision/PRT0001.collision.stl" />
+    <mesh name="collision/KD_C_101L_ShldYokeDrive.collision" file="collision/KD_C_101L_ShldYokeDrive.collision.stl" />
+    <mesh name="collision/RS03_4.collision" file="collision/RS03_4.collision.stl" />
+    <mesh name="collision/KD_C_301L_LowerBicepDrive.collision" file="collision/KD_C_301L_LowerBicepDrive.collision.stl" />
+    <mesh name="collision/KC_C_401L_Up_Forearm_Drive.collision" file="collision/KC_C_401L_Up_Forearm_Drive.collision.stl" />
+    <mesh name="collision/PRT0001_2.collision" file="collision/PRT0001_2.collision.stl" />
+    <mesh name="collision/KD_D_102R.collision" file="collision/KD_D_102R.collision.stl" />
+    <mesh name="collision/L_Hip_Roll_RS03_2.collision" file="collision/L_Hip_Roll_RS03_2.collision.stl" />
+    <mesh name="collision/KD_D_301R.collision" file="collision/KD_D_301R.collision.stl" />
+    <mesh name="collision/KD_D_401R.collision" file="collision/KD_D_401R.collision.stl" />
+    <mesh name="collision/RFootBushing_GPF_1517_12.collision" file="collision/RFootBushing_GPF_1517_12.collision.stl" />
+  </asset>
+  <worldbody>
+    <geom name="floor" type="plane" size="10 10 0.1" material="matplane" />
+    <light directional="true" diffuse="0.8 0.8 0.8" pos="0 0 5" dir="0 0 -1" />
+    <body name="floating_base" pos="0 0 0.89">
+      <freejoint name="root_joint" />
+      <body name="KD_D_102L_L_Hip_Yoke_Drive" pos="0.056001 0.002025 -0.073841">
+        <joint name="dof_left_hip_pitch_04" type="hinge" axis="0 0 1" range="-1.047198 2.216568" />
+        <inertial mass="0.550354" pos="0 0 0" diaginertia="0.00550354 0.00550354 0.00550354" />
+        <geom type="mesh" mesh="collision/KD_D_102L_L_Hip_Yoke_Drive.collision" />
+        <body name="L_Hip_Roll_RS03" pos="-0.028250 0.030000 -0.071000">
+          <joint name="dof_left_hip_roll_03" type="hinge" axis="0 0 -1" range="-0.209440 2.268928" />
+          <inertial mass="2.396969" pos="0 0 0" diaginertia="0.02396969 0.02396969 0.02396969" />
+          <geom type="mesh" mesh="collision/L_Hip_Roll_RS03.collision" />
+          <body name="KD_D_301L_L_Femur_Lower_Drive" pos="0 -0.143000 0.025250">
+            <joint name="dof_left_hip_yaw_03" type="hinge" axis="0 0 1" range="-1.570796 1.570796" />
+            <inertial mass="2.349254" pos="0 0 0" diaginertia="0.023492540000000003 0.023492540000000003 0.023492540000000003" />
+            <geom type="mesh" mesh="collision/KD_D_301L_L_Femur_Lower_Drive.collision" />
+            <body name="KD_D_401L_L_Shin_Drive" pos="-0.021000 0.021000 -0.212000">
+              <joint name="dof_left_knee_04" type="hinge" axis="0 0 1" range="0 2.705260" />
+              <inertial mass="1.684707" pos="0 0 0" diaginertia="0.01684707 0.01684707 0.01684707" />
+              <geom type="mesh" mesh="collision/KD_D_401L_L_Shin_Drive.collision" />
+              <body name="LFootBushing_GPF_1517_12" pos="-0.030000 -0.290000 0.000950">
+                <joint name="dof_left_ankle_02" type="hinge" axis="0 0 -1" range="-1.134464 0.261799" />
+                <inertial mass="0.608966" pos="0 0 0" diaginertia="0.00608966 0.00608966 0.00608966" />
+                <geom type="mesh" mesh="collision/LFootBushing_GPF_1517_12.collision" />
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="KC_C_101R_ShldYokeDrive" pos="-0.120999 0.002025 0.336659">
+        <joint name="dof_right_shoulder_pitch_03" type="hinge" axis="0 0 -1" range="-3.490658 1.047198" />
+        <inertial mass="0.569870" pos="0 0 0" diaginertia="0.0056987 0.0056987 0.0056987" />
+        <geom type="mesh" mesh="collision/KC_C_101R_ShldYokeDrive.collision" />
+        <body name="RS03_3" pos="0 -0.024250 0.080000">
+          <joint name="dof_right_shoulder_roll_03" type="hinge" axis="0 0 1" range="-1.658063 0.436332" />
+          <inertial mass="1.789232" pos="0 0 0" diaginertia="0.01789232 0.01789232 0.01789232" />
+          <geom type="mesh" mesh="collision/RS03_3.collision" />
+          <body name="KC_C_202R" pos="-0.013000 -0.142500 -0.031670">
+            <joint name="dof_right_shoulder_yaw_02" type="hinge" axis="0 0 1" range="-1.671886 1.671886" />
+            <inertial mass="0.753224" pos="0 0 0" diaginertia="0.00753224 0.00753224 0.00753224" />
+            <geom type="mesh" mesh="collision/KC_C_202R.collision" />
+            <body name="KC_C_401R_R_UpForearmDrive" pos="0.019000 -0.010000 -0.137000">
+              <joint name="dof_right_elbow_02" type="hinge" axis="0 0 1" range="0 2.478368" />
+              <inertial mass="0.641859" pos="0 0 0" diaginertia="0.00641859 0.00641859 0.00641859" />
+              <geom type="mesh" mesh="collision/KC_C_401R_R_UpForearmDrive.collision" />
+              <body name="PRT0001" pos="0.017350 0.103000 0.018000">
+                <joint name="dof_right_wrist_00" type="hinge" axis="0 0 -1" range="-1.378810 1.378810" />
+                <inertial mass="0.469028" pos="0 0 0" diaginertia="0.00469028 0.00469028 0.00469028" />
+                <geom type="mesh" mesh="collision/PRT0001.collision" />
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="KD_C_101L_ShldYokeDrive" pos="0.121001 0.002025 0.336659">
+        <joint name="dof_left_shoulder_pitch_03" type="hinge" axis="0 0 -1" range="-1.047198 3.490658" />
+        <inertial mass="0.569863" pos="0 0 0" diaginertia="0.0056986300000000005 0.0056986300000000005 0.0056986300000000005" />
+        <geom type="mesh" mesh="collision/KD_C_101L_ShldYokeDrive.collision" />
+        <body name="RS03_4" pos="0 -0.024250 0.080000">
+          <joint name="dof_left_shoulder_roll_03" type="hinge" axis="0 0 1" range="-0.436332 1.658063" />
+          <inertial mass="1.789190" pos="0 0 0" diaginertia="0.017891900000000002 0.017891900000000002 0.017891900000000002" />
+          <geom type="mesh" mesh="collision/RS03_4.collision" />
+          <body name="KD_C_301L_LowerBicepDrive" pos="0.013000 -0.142500 -0.030750">
+            <joint name="dof_left_shoulder_yaw_02" type="hinge" axis="0 0 1" range="-1.671886 1.671886" />
+            <inertial mass="0.866827" pos="0 0 0" diaginertia="0.00866827 0.00866827 0.00866827" />
+            <geom type="mesh" mesh="collision/KD_C_301L_LowerBicepDrive.collision" />
+            <body name="KC_C_401L_Up_Forearm_Drive" pos="-0.019000 -0.010000 -0.137000">
+              <joint name="dof_left_elbow_02" type="hinge" axis="0 0 1" range="-2.478368 0" />
+              <inertial mass="0.641873" pos="0 0 0" diaginertia="0.00641873 0.00641873 0.00641873" />
+              <geom type="mesh" mesh="collision/KC_C_401L_Up_Forearm_Drive.collision" />
+              <body name="PRT0001_2" pos="0.017350 -0.103000 0.018000">
+                <joint name="dof_left_wrist_00" type="hinge" axis="0 0 -1" range="-1.378810 1.378810" />
+                <inertial mass="0.469028" pos="0 0 0" diaginertia="0.00469028 0.00469028 0.00469028" />
+                <geom type="mesh" mesh="collision/PRT0001_2.collision" />
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="KD_D_102R" pos="-0.055999 0.002025 -0.073841">
+        <joint name="dof_right_hip_pitch_04" type="hinge" axis="0 0 1" range="-2.216568 1.047198" />
+        <inertial mass="0.550361" pos="0 0 0" diaginertia="0.00550361 0.00550361 0.00550361" />
+        <geom type="mesh" mesh="collision/KD_D_102R.collision" />
+        <body name="L_Hip_Roll_RS03_2" pos="-0.028250 -0.030000 -0.071000">
+          <joint name="dof_right_hip_roll_03" type="hinge" axis="0 0 1" range="-2.268928 0.209440" />
+          <inertial mass="2.396917" pos="0 0 0" diaginertia="0.02396917 0.02396917 0.02396917" />
+          <geom type="mesh" mesh="collision/L_Hip_Roll_RS03_2.collision" />
+          <body name="KD_D_301R" pos="0 -0.143000 -0.025250">
+            <joint name="dof_right_hip_yaw_03" type="hinge" axis="0 0 1" range="-1.570796 1.570796" />
+            <inertial mass="2.349261" pos="0 0 0" diaginertia="0.023492609999999997 0.023492609999999997 0.023492609999999997" />
+            <geom type="mesh" mesh="collision/KD_D_301R.collision" />
+            <body name="KD_D_401R" pos="0.021000 0.021000 -0.212000">
+              <joint name="dof_right_knee_04" type="hinge" axis="0 0 -1" range="-2.705260 0" />
+              <inertial mass="1.684717" pos="0 0 0" diaginertia="0.01684717 0.01684717 0.01684717" />
+              <geom type="mesh" mesh="collision/KD_D_401R.collision" />
+              <body name="RFootBushing_GPF_1517_12" pos="-0.030000 -0.290000 -0.000950">
+                <joint name="dof_right_ankle_02" type="hinge" axis="0 0 -1" range="-0.261799 1.134464" />
+                <inertial mass="0.608742" pos="0 0 0" diaginertia="0.0060874200000000005 0.0060874200000000005 0.0060874200000000005" />
+                <geom type="mesh" mesh="collision/RFootBushing_GPF_1517_12.collision" />
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <inertial pos="0 0 0" mass="5.0" diaginertia="0.1 0.1 0.1" />
+    </body>
+  </worldbody>
+  <actuator>
+    <position name="dof_left_hip_pitch_04_motor" joint="dof_left_hip_pitch_04" kp="100" />
+    <position name="dof_right_shoulder_pitch_03_motor" joint="dof_right_shoulder_pitch_03" kp="100" />
+    <position name="dof_left_shoulder_pitch_03_motor" joint="dof_left_shoulder_pitch_03" kp="100" />
+    <position name="dof_left_hip_roll_03_motor" joint="dof_left_hip_roll_03" kp="100" />
+    <position name="dof_right_hip_pitch_04_motor" joint="dof_right_hip_pitch_04" kp="100" />
+    <position name="dof_right_shoulder_roll_03_motor" joint="dof_right_shoulder_roll_03" kp="100" />
+    <position name="dof_left_shoulder_roll_03_motor" joint="dof_left_shoulder_roll_03" kp="100" />
+    <position name="dof_right_hip_roll_03_motor" joint="dof_right_hip_roll_03" kp="100" />
+    <position name="dof_left_hip_yaw_03_motor" joint="dof_left_hip_yaw_03" kp="100" />
+    <position name="dof_right_shoulder_yaw_02_motor" joint="dof_right_shoulder_yaw_02" kp="100" />
+    <position name="dof_left_shoulder_yaw_02_motor" joint="dof_left_shoulder_yaw_02" kp="100" />
+    <position name="dof_right_hip_yaw_03_motor" joint="dof_right_hip_yaw_03" kp="100" />
+    <position name="dof_left_knee_04_motor" joint="dof_left_knee_04" kp="100" />
+    <position name="dof_right_elbow_02_motor" joint="dof_right_elbow_02" kp="100" />
+    <position name="dof_left_elbow_02_motor" joint="dof_left_elbow_02" kp="100" />
+    <position name="dof_left_ankle_02_motor" joint="dof_left_ankle_02" kp="100" />
+    <position name="dof_right_knee_04_motor" joint="dof_right_knee_04" kp="100" />
+    <position name="dof_right_ankle_02_motor" joint="dof_right_ankle_02" kp="100" />
+    <position name="dof_right_wrist_00_motor" joint="dof_right_wrist_00" kp="100" />
+    <position name="dof_left_wrist_00_motor" joint="dof_left_wrist_00" kp="100" />
+  </actuator>
+</mujoco>

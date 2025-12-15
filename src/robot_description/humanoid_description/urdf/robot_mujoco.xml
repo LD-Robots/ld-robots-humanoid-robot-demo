@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<mujoco model="humanoid">
+  <compiler angle="radian"
+            meshdir="/home/andrei/ros2_ws_demo/ld-robots-humanoid-robot-demo/src/robot_description/humanoid_description/meshes"
+            balanceinertia="true"/>
+
+  <option timestep="0.002"
+          iterations="50"
+          solver="Newton"
+          gravity="0 0 -9.81"/>
+
+  <!-- Include the fixed URDF -->
+  <include file="robot_fixed.urdf"/>
+
+</mujoco>
