@@ -120,6 +120,12 @@ private:
   void robotDescriptionCallback(const std_msgs::msg::String::SharedPtr msg);
 
   /**
+   * @brief Callback for get-up behavior status
+   * @param msg Boolean indicating if robot is currently getting up
+   */
+  void isGettingUpCallback(const std_msgs::msg::Bool::SharedPtr msg);
+
+  /**
    * @brief Load robot model and build KDL chains for legs
    * @param urdf_string URDF model as string
    * @return true if successful
@@ -182,6 +188,7 @@ private:
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr zmp_stable_sub_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr robot_description_sub_;
+  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr is_getting_up_sub_;
 
   rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr leg_command_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr calibration_offset_pub_;
@@ -207,6 +214,7 @@ private:
   bool zmp_stable_;
   bool model_loaded_;
   bool joint_state_received_;
+  bool is_getting_up_;  // True when robot is executing get-up sequence
 
   // Calibration offsets (learned over time)
   std::map<std::string, double> calibration_offsets_;

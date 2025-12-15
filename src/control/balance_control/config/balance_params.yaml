@@ -23,7 +23,7 @@ imu_feedback_processor:
 com_controller:
   ros__parameters:
     # Robot base link name
-    base_link: "base_link"
+    base_link: "base"
 
     # PD controller gains for CoM position control
     # Higher Kp = stronger position correction
@@ -132,3 +132,28 @@ balance_system:
     # Logging and debugging
     publish_debug_topics: true
     log_level: "info"  # debug, info, warn, error
+
+# Get-Up Behavior Parameters
+get_up_behavior:
+  ros__parameters:
+    # Tilt thresholds for detecting fallen state
+    # Robot is considered fallen if tilt exceeds this threshold
+    fallen_tilt_threshold: 1.0  # rad (~57 degrees) - robot is fallen
+
+    # Robot is considered standing if tilt is below this threshold
+    standing_tilt_threshold: 0.3  # rad (~17 degrees) - robot is upright
+
+    # Control loop rate (Hz)
+    control_rate: 50.0  # Lower rate for get-up behavior (smoother motion)
+
+    # Duration for each trajectory point in get-up sequence
+    get_up_duration_per_point: 1.0  # seconds - time to reach each pose
+
+    # Enable/disable get-up behavior
+    # Set to false to disable automatic recovery from falls
+    enable_get_up: true
+
+    # Path to get-up sequences configuration file
+    # This file contains all the joint positions for get-up behaviors
+    # NOTE: This parameter is set in the launch file using PathJoinSubstitution
+    # sequences_config_file: ""  # Set by launch file

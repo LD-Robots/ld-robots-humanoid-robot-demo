@@ -7,11 +7,13 @@ endif()
 
 # Find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(trajectory_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
@@ -21,17 +23,20 @@ find_package(orocos_kdl REQUIRED)
 find_package(controller_interface REQUIRED)
 find_package(humanoid_msgs REQUIRED)
 find_package(humanoid_utils REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 # Include directories
 include_directories(include)
 
 # Dependencies list for linking
 set(dependencies
+  ament_index_cpp
   rclcpp
   rclcpp_components
   sensor_msgs
   geometry_msgs
   std_msgs
+  trajectory_msgs
   tf2
   tf2_ros
   tf2_geometry_msgs
@@ -75,6 +80,15 @@ target_compile_features(leg_balance_controller PUBLIC cxx_std_17)
 ament_target_dependencies(leg_balance_controller ${dependencies})
 rclcpp_components_register_nodes(leg_balance_controller "balance_control::LegBalanceController")
 
+# Get-Up Behavior Node
+add_library(get_up_behavior SHARED
+  src/get_up_behavior.cpp
+)
+target_compile_features(get_up_behavior PUBLIC cxx_std_17)
+target_link_libraries(get_up_behavior yaml-cpp)
+ament_target_dependencies(get_up_behavior ${dependencies})
+rclcpp_components_register_nodes(get_up_behavior "balance_control::GetUpBehavior")
+
 # Create a component_container executable for running all nodes
 find_package(rclcpp_components REQUIRED)
 add_executable(balance_control_node src/balance_control_node.cpp)
@@ -84,6 +98,7 @@ target_link_libraries(balance_control_node
   com_controller
   zmp_stabilizer
   leg_balance_controller
+  get_up_behavior
 )
 ament_target_dependencies(balance_control_node ${dependencies})
 
@@ -93,6 +108,7 @@ install(TARGETS
   com_controller
   zmp_stabilizer
   leg_balance_controller
+  get_up_behavior
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -132,6 +148,7 @@ ament_export_libraries(
   com_controller
   zmp_stabilizer
   leg_balance_controller
+  get_up_behavior
 )
 ament_export_dependencies(${dependencies})
 

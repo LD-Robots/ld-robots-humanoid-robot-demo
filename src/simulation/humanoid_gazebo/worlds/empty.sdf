@@ -61,8 +61,10 @@
           <surface>
             <friction>
               <ode>
-                <mu>1.2</mu>
-                <mu2>1.2</mu2>
+                <!-- Laminate flooring friction (slippery!) -->
+                <!-- Was 1.2 (concrete), now 0.35 (laminate) -->
+                <mu>0.35</mu>
+                <mu2>0.35</mu2>
               </ode>
             </friction>
             <contact>
@@ -83,9 +85,10 @@
             </plane>
           </geometry>
           <material>
-            <ambient>0.8 0.8 0.8 1</ambient>
-            <diffuse>0.8 0.8 0.8 1</diffuse>
-            <specular>0.8 0.8 0.8 1</specular>
+            <!-- Laminate wood floor appearance (light brown with shine) -->
+            <ambient>0.6 0.5 0.4 1</ambient>
+            <diffuse>0.7 0.6 0.45 1</diffuse>
+            <specular>0.3 0.3 0.3 1</specular>  <!-- Shiny laminate finish -->
           </material>
         </visual>
       </link>

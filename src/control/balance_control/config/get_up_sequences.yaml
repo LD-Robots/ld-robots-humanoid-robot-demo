@@ -1,0 +1,359 @@
+# Get-Up Behavior Sequences Configuration
+# Defines all joint positions for get-up recovery behaviors
+
+# =============================================================================
+# COMMON INITIAL POSITION - Reset all joints to zero before starting any sequence
+# =============================================================================
+initial_reset:
+  description: "Reset all joints to neutral position before get-up sequence"
+  duration: 1.5  # seconds
+  positions:
+    # Legs
+    dof_left_hip_pitch_04: 0.0
+    dof_left_hip_roll_03: 0.0
+    dof_left_hip_yaw_03: 0.0
+    dof_left_knee_04: 0.0
+    dof_left_ankle_02: 0.0
+    dof_right_hip_pitch_04: 0.0
+    dof_right_hip_roll_03: 0.0
+    dof_right_hip_yaw_03: 0.0
+    dof_right_knee_04: 0.0
+    dof_right_ankle_02: 0.0
+    # Arms
+    dof_left_shoulder_pitch_03: 0.0
+    dof_left_shoulder_roll_03: 0.0
+    dof_left_shoulder_yaw_02: 0.0
+    dof_left_elbow_02: 0.0
+    dof_left_wrist_00: 0.0
+    dof_right_shoulder_pitch_03: 0.0
+    dof_right_shoulder_roll_03: 0.0
+    dof_right_shoulder_yaw_02: 0.0
+    dof_right_elbow_02: 0.0
+    dof_right_wrist_00: 0.0
+
+# =============================================================================
+# GET-UP FROM FRONT (lying face down - cu fața la podea)
+# =============================================================================
+# Joint limits reference:
+# - LEFT knee:  0.0 to +2.705 (only positive!)
+# - RIGHT knee: -2.705 to 0.0 (only negative!)
+# - LEFT elbow: -2.478 to 0.0 (only negative!)
+# - RIGHT elbow: 0.0 to +2.478 (only positive!)
+# - hip_pitch: -2.09 to +2.09
+# - ankle: -0.79 to +0.79
+# =============================================================================
+get_up_from_front:
+  description: "Get up from face-down - G1-inspired EXPLOSIVE recovery"
+
+  # Step 1: SETUP - Wide hands, bent elbows (FAST!)
+  step_1:
+    description: "Wide hands setup for explosive push"
+    duration: 0.3  # G1-style: RAPID positioning
+    positions:
+      # Legs - straight, ready to extend
+      dof_left_hip_pitch_04: 0.0
+      dof_left_hip_roll_03: 0.0
+      dof_left_hip_yaw_03: 0.0
+      dof_left_knee_04: 0.0
+      dof_left_ankle_02: 0.15
+      dof_right_hip_pitch_04: 0.0
+      dof_right_hip_roll_03: 0.0
+      dof_right_hip_yaw_03: 0.0
+      dof_right_knee_04: 0.0
+      dof_right_ankle_02: 0.5
+      # Arms - WIDE stance, MAX bent for explosive power
+      dof_left_shoulder_pitch_03: 1.4
+      dof_left_shoulder_roll_03: -0.4    # Wider for stability
+      dof_left_shoulder_yaw_02: 1.2      # WIDE hands!
+      dof_left_elbow_02: -2.3            # MAX bent = MAX torque!
+      dof_left_wrist_00: 0.0
+      dof_right_shoulder_pitch_03: -1.4
+      dof_right_shoulder_roll_03: 0.4
+      dof_right_shoulder_yaw_02: -1.2
+      dof_right_elbow_02: 2.3
+      dof_right_wrist_00: 0.0
+
+  # Step 2: EXPLOSIVE PUSH-UP - One powerful move to plank! (G1 style!)
+  step_2:
+    description: "EXPLOSIVE push to full plank (combined lift+extend)"
+    duration: 0.8  # G1-style: BURST of torque, single fluid move
+    positions:
+      # Legs - STRONG hip extension for maximum height
+      dof_left_hip_pitch_04: 1.0       # STRONGER than before!
+      dof_left_hip_roll_03: 0.0
+      dof_left_hip_yaw_03: 0.0
+      dof_left_knee_04: 0.0            # Straight, rigid plank
+      dof_left_ankle_02: 0.3
+      dof_right_hip_pitch_04: -1.0     # STRONGER!
+      dof_right_hip_roll_03: 0.0
+      dof_right_hip_yaw_03: 0.0
+      dof_right_knee_04: 0.0
+      dof_right_ankle_02: 0.7
+      # Arms - EXPLOSIVE extension from bent to straight
+      dof_left_shoulder_pitch_03: 1.6
+      dof_left_shoulder_roll_03: -0.3
+      dof_left_shoulder_yaw_02: 0.0
+      dof_left_elbow_02: -0.4          # Slightly bent for stability
+      dof_left_wrist_00: 0.0
+      dof_right_shoulder_pitch_03: -1.6
+      dof_right_shoulder_roll_03: 0.3
+      dof_right_shoulder_yaw_02: 0.0
+      dof_right_elbow_02: 0.4
+      dof_right_wrist_00: 0.0
+
+  # Step 3: RAPID KNEE TUCK - Fast knee fold (like G1 impact absorption)
+  step_3:
+    description: "Rapid knee tuck to all fours"
+    duration: 0.6  # G1-style: FAST knee fold
+    positions:
+      # Legs - POWERFUL knee tuck
+      dof_left_hip_pitch_04: 1.6       # Strong hip flexion
+      dof_left_hip_roll_03: 0.0
+      dof_left_hip_yaw_03: 0.0
+      dof_left_knee_04: 2.5            # DEEP tuck
+      dof_left_ankle_02: 0.3
+      dof_right_hip_pitch_04: -1.6
+      dof_right_hip_roll_03: 0.0
+      dof_right_hip_yaw_03: 0.0
+      dof_right_knee_04: -2.5          # DEEP tuck
+      dof_right_ankle_02: 0.7
+      # Arms - strong support, vertical
+      dof_left_shoulder_pitch_03: 1.6
+      dof_left_shoulder_roll_03: -0.3
+      dof_left_shoulder_yaw_02: 0.0
+      dof_left_elbow_02: -0.4          # Slightly bent for stability
+      dof_left_wrist_00: 0.0
+      dof_right_shoulder_pitch_03: -1.6
+      dof_right_shoulder_roll_03: 0.3
+      dof_right_shoulder_yaw_02: 0.0
+      dof_right_elbow_02: 0.4
+      dof_right_wrist_00: 0.0
+
+  # Step 4: EXPLOSIVE KNEEL - Burst to upright kneeling
+  step_4:
+    description: "Explosive push to upright kneeling"
+    duration: 0.5  # G1-style: BURST upward
+    positions:
+      # Legs - powerful kneel stance
+      dof_left_hip_pitch_04: 1.0       # Stronger hip position
+      dof_left_hip_roll_03: 0.0
+      dof_left_hip_yaw_03: 0.0
+      dof_left_knee_04: 1.8            # Stable kneel
+      dof_left_ankle_02: 0.3
+      dof_right_hip_pitch_04: -1.0
+      dof_right_hip_roll_03: 0.0
+      dof_right_hip_yaw_03: 0.0
+      dof_right_knee_04: -1.8
+      dof_right_ankle_02: 0.6
+      # Arms - ready for final stand
+      dof_left_shoulder_pitch_03: 0.0
+      dof_left_shoulder_roll_03: -0.3
+      dof_left_shoulder_yaw_02: 0.0
+      dof_left_elbow_02: -0.5
+      dof_left_wrist_00: 0.0
+      dof_right_shoulder_pitch_03: 0.0
+      dof_right_shoulder_roll_03: 0.3
+      dof_right_shoulder_yaw_02: 0.0
+      dof_right_elbow_02: 0.5
+      dof_right_wrist_00: 0.0
+
+  # Step 5: POWERFUL STAND - Final explosive rise to standing
+  step_5:
+    description: "Explosive leg extension to full stand"
+    duration: 0.7  # G1-style: ONE clean move to standing
+    positions:
+      # Legs - full standing (all zeros)
+      dof_left_hip_pitch_04: 0.0
+      dof_left_hip_roll_03: 0.0
+      dof_left_hip_yaw_03: 0.0
+      dof_left_knee_04: 0.0
+      dof_left_ankle_02: 0.0
+      dof_right_hip_pitch_04: 0.0
+      dof_right_hip_roll_03: 0.0
+      dof_right_hip_yaw_03: 0.0
+      dof_right_knee_04: 0.0
+      dof_right_ankle_02: 0.0
+      # Arms - neutral standing (INVERTED shoulder roll)
+      dof_left_shoulder_pitch_03: 0.0
+      dof_left_shoulder_roll_03: -0.3  # Negative for left
+      dof_left_shoulder_yaw_02: 0.0
+      dof_left_elbow_02: -0.5          # LEFT elbow: negative
+      dof_left_wrist_00: 0.0
+      dof_right_shoulder_pitch_03: 0.0
+      dof_right_shoulder_roll_03: 0.3  # Positive for right
+      dof_right_shoulder_yaw_02: 0.0
+      dof_right_elbow_02: 0.5          # RIGHT elbow: positive
+      dof_right_wrist_00: 0.0
+
+# =============================================================================
+# GET-UP FROM BACK (lying on back - cu spatele pe podea)
+# =============================================================================
+get_up_from_back:
+  description: "Get up from back - G1-inspired explosive recovery via all-fours"
+
+  # Step 1: RAPID CRUNCH - Knees to chest, arms ready
+  step_1:
+    description: "Rapid crunch - knees to chest"
+    duration: 0.4  # G1-style: FAST!
+    positions:
+      # Legs - strong crunch
+      dof_left_hip_pitch_04: 2.0      # Deep hip flexion
+      dof_left_hip_roll_03: 0.0
+      dof_left_hip_yaw_03: 0.0
+      dof_left_knee_04: 1.5           # Bent knees
+      dof_left_ankle_02: 0.3
+      dof_right_hip_pitch_04: -2.0
+      dof_right_hip_roll_03: 0.0
+      dof_right_hip_yaw_03: 0.0
+      dof_right_knee_04: -1.5
+      dof_right_ankle_02: 0.6
+      # Arms - prep for roll
+      dof_left_shoulder_pitch_03: -1.0
+      dof_left_shoulder_roll_03: 0.0
+      dof_left_shoulder_yaw_02: 0.0
+      dof_left_elbow_02: -0.3
+      dof_left_wrist_00: 0.0
+      dof_right_shoulder_pitch_03: 1.0
+      dof_right_shoulder_roll_03: 0.0
+      dof_right_shoulder_yaw_02: 0.0
+      dof_right_elbow_02: 0.3
+      dof_right_wrist_00: 0.0
+
+  # Step 2: ROLL TO SIDE - Plant hands, tuck knees
+  step_2:
+    description: "Roll to side and plant hands wide"
+    duration: 0.5  # G1-style: RAPID roll
+    positions:
+      # Legs - roll to side, knees tucked MAX
+      dof_left_hip_pitch_04: 2.0      # Deep hip flexion
+      dof_left_hip_roll_03: 0.8       # Roll to side
+      dof_left_hip_yaw_03: 0.0
+      dof_left_knee_04: 1.5           # Bent knees
+      dof_left_ankle_02: 0.3
+      dof_right_hip_pitch_04: -2.0
+      dof_right_hip_roll_03: -0.8     # Roll opposite
+      dof_right_hip_yaw_03: 0.0
+      dof_right_knee_04: -1.5
+      dof_right_ankle_02: 0.6
+      # Arms - PLANT hands wide for push
+      dof_left_shoulder_pitch_03: 1.2
+      dof_left_shoulder_roll_03: -0.4
+      dof_left_shoulder_yaw_02: 0.5   # Wide
+      dof_left_elbow_02: -1.0         # Bent for leverage
+      dof_left_wrist_00: 0.0
+      dof_right_shoulder_pitch_03: -1.2
+      dof_right_shoulder_roll_03: 0.4
+      dof_right_shoulder_yaw_02: -0.5
+      dof_right_elbow_02: 1.0
+      dof_right_wrist_00: 0.0
+
+  # Step 2: ROLL TO SIDE - Plant hands, tuck knees
+  step_3:
+    description: "Roll to side and plant hands wide"
+    duration: 0.7  # G1-style: RAPID roll
+    positions:
+      # Legs - roll to side, knees tucked MAX
+      dof_left_hip_pitch_04: 1.8      # Less extreme hip flexion
+      dof_left_hip_roll_03: 0.8       # Roll to side
+      dof_left_hip_yaw_03: 0.0
+      dof_left_knee_04: 2.5           # MAX tuck
+      dof_left_ankle_02: 0.4
+      dof_right_hip_pitch_04: -1.8
+      dof_right_hip_roll_03: -0.8     # Roll opposite
+      dof_right_hip_yaw_03: 0.0
+      dof_right_knee_04: -2.5         # MAX tuck
+      dof_right_ankle_02: 0.7
+      # Arms - PLANT hands wide for push
+      dof_left_shoulder_pitch_03: 1.2
+      dof_left_shoulder_roll_03: -0.4
+      dof_left_shoulder_yaw_02: 0.5   # Wide
+      dof_left_elbow_02: -1.0         # Bent for leverage
+      dof_left_wrist_00: 0.0
+      dof_right_shoulder_pitch_03: -1.2
+      dof_right_shoulder_roll_03: 0.4
+      dof_right_shoulder_yaw_02: -0.5
+      dof_right_elbow_02: 1.0
+      dof_right_wrist_00: 0.0
+  # Step 3: EXPLOSIVE PUSH TO ALL-FOURS - Like baby getting up!
+  step_4:
+    description: "Explosive push to all-fours position"
+    duration: 0.8  # G1-style: BURST!
+    positions:
+      # Legs - all-fours stance (same as front step_4!)
+      dof_left_hip_pitch_04: 1.6      # Hip flexion for all-fours
+      dof_left_hip_roll_03: 0.0       # Centered
+      dof_left_hip_yaw_03: 0.0
+      dof_left_knee_04: 2.5           # Knees under body
+      dof_left_ankle_02: 0.4
+      dof_right_hip_pitch_04: -1.6
+      dof_right_hip_roll_03: 0.0
+      dof_right_hip_yaw_03: 0.0
+      dof_right_knee_04: -2.5
+      dof_right_ankle_02: 0.7
+      # Arms - supporting all-fours
+      dof_left_shoulder_pitch_03: 1.6
+      dof_left_shoulder_roll_03: -0.3
+      dof_left_shoulder_yaw_02: 0.0
+      dof_left_elbow_02: -0.4         # Slightly bent
+      dof_left_wrist_00: 0.0
+      dof_right_shoulder_pitch_03: -1.6
+      dof_right_shoulder_roll_03: 0.3
+      dof_right_shoulder_yaw_02: 0.0
+      dof_right_elbow_02: 0.4
+      dof_right_wrist_00: 0.0
+
+  # Step 4: EXPLOSIVE KNEEL - Burst upright
+  step_5:
+    description: "Explosive push to upright kneeling"
+    duration: 0.5  # G1-style: FAST!
+    positions:
+      # Legs - upright kneel (same as front step_4!)
+      dof_left_hip_pitch_04: 1.0
+      dof_left_hip_roll_03: 0.0
+      dof_left_hip_yaw_03: 0.0
+      dof_left_knee_04: 1.8           # Kneeling
+      dof_left_ankle_02: 0.3
+      dof_right_hip_pitch_04: -1.0
+      dof_right_hip_roll_03: 0.0
+      dof_right_hip_yaw_03: 0.0
+      dof_right_knee_04: -1.8
+      dof_right_ankle_02: 0.6
+      # Arms - balanced, ready to stand
+      dof_left_shoulder_pitch_03: 0.0
+      dof_left_shoulder_roll_03: -0.3
+      dof_left_shoulder_yaw_02: 0.0
+      dof_left_elbow_02: -0.5
+      dof_left_wrist_00: 0.0
+      dof_right_shoulder_pitch_03: 0.0
+      dof_right_shoulder_roll_03: 0.3
+      dof_right_shoulder_yaw_02: 0.0
+      dof_right_elbow_02: 0.5
+      dof_right_wrist_00: 0.0
+
+  # Step 5: POWERFUL STAND - Final explosive rise
+  step_6:
+    description: "Explosive leg extension to full stand"
+    duration: 0.7  # G1-style: ONE clean move!
+    positions:
+      # Legs - full standing
+      dof_left_hip_pitch_04: 0.0
+      dof_left_hip_roll_03: 0.0
+      dof_left_hip_yaw_03: 0.0
+      dof_left_knee_04: 0.0
+      dof_left_ankle_02: 0.0
+      dof_right_hip_pitch_04: 0.0
+      dof_right_hip_roll_03: 0.0
+      dof_right_hip_yaw_03: 0.0
+      dof_right_knee_04: 0.0
+      dof_right_ankle_02: 0.0
+      # Arms - neutral standing
+      dof_left_shoulder_pitch_03: 0.0
+      dof_left_shoulder_roll_03: -0.3
+      dof_left_shoulder_yaw_02: 0.0
+      dof_left_elbow_02: -0.5
+      dof_left_wrist_00: 0.0
+      dof_right_shoulder_pitch_03: 0.0
+      dof_right_shoulder_roll_03: 0.3
+      dof_right_shoulder_yaw_02: 0.0
+      dof_right_elbow_02: 0.5
+      dof_right_wrist_00: 0.0

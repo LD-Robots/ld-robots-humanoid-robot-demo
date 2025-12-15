@@ -9,7 +9,8 @@ LegBalanceController::LegBalanceController(const rclcpp::NodeOptions & options)
 : Node("leg_balance_controller", options),
   zmp_stable_(false),
   model_loaded_(false),
-  joint_state_received_(false)
+  joint_state_received_(false),
+  is_getting_up_(false)
 {
   // Declare and get parameters
   this->declare_parameter("left_leg_chain_base", "base");
@@ -83,6 +84,11 @@ LegBalanceController::LegBalanceController(const rclcpp::NodeOptions & options)
     "/robot_description",
     rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
     std::bind(&LegBalanceController::robotDescriptionCallback, this, std::placeholders::_1));
+
+  is_getting_up_sub_ = this->create_subscription<std_msgs::msg::Bool>(
+    "/behavior/is_getting_up",
+    10,
+    std::bind(&LegBalanceController::isGettingUpCallback, this, std::placeholders::_1));
 
   // Create publishers
   leg_command_pub_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(
@@ -215,10 +221,23 @@ void LegBalanceController::jointStateCallback(const sensor_msgs::msg::JointState
   joint_state_received_ = true;
 }
 
+void LegBalanceController::isGettingUpCallback(const std_msgs::msg::Bool::SharedPtr msg)
+{
+  is_getting_up_ = msg->data;
+  if (is_getting_up_) {
+    RCLCPP_INFO(this->get_logger(), "Get-up behavior active - leg balance controller paused");
+  }
+}
+
 void LegBalanceController::controlLoop()
 {
   // Wait until model is loaded and joint states received
   if (!model_loaded_ || !joint_state_received_) {
+    return;
+  }
+
+  // Don't publish leg commands when get-up behavior is active
+  if (is_getting_up_) {
     return;
   }
 

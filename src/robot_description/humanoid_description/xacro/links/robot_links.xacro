@@ -492,6 +492,15 @@
             <geometry name="PRT0001_collision_geometry">
                 <mesh filename="package://humanoid_description/meshes/collision/PRT0001.collision.stl" />
             </geometry>
+            <!-- Low friction for sliding on ground during push-ups -->
+            <surface>
+                <friction>
+                    <ode>
+                        <mu>0.2</mu>   <!-- Very low friction for sliding -->
+                        <mu2>0.2</mu2>
+                    </ode>
+                </friction>
+            </surface>
         </collision>
         <inertial name="PRT0001_inertial">
             <mass value="0.469028" />
@@ -515,6 +524,15 @@
             <geometry name="PRT0001_collision_geometry_2">
                 <mesh filename="package://humanoid_description/meshes/collision/PRT0001_2.collision.stl" />
             </geometry>
+            <!-- Low friction for sliding on ground during push-ups -->
+            <surface>
+                <friction>
+                    <ode>
+                        <mu>0.2</mu>   <!-- Very low friction for sliding -->
+                        <mu2>0.2</mu2>
+                    </ode>
+                </friction>
+            </surface>
         </collision>
         <inertial name="PRT0001_inertial_2">
             <mass value="0.469028" />

@@ -115,7 +115,7 @@ void ZMPStabilizer::comPositionCallback(const geometry_msgs::msg::PointStamped::
   // Publish ZMP position
   geometry_msgs::msg::PointStamped zmp_msg;
   zmp_msg.header.stamp = this->now();
-  zmp_msg.header.frame_id = "base_link";
+  zmp_msg.header.frame_id = "base";
   zmp_msg.point = zmp;
   zmp_position_pub_->publish(zmp_msg);
 
@@ -130,7 +130,7 @@ void ZMPStabilizer::comPositionCallback(const geometry_msgs::msg::PointStamped::
   // Publish ZMP error
   geometry_msgs::msg::Vector3Stamped error_msg;
   error_msg.header.stamp = this->now();
-  error_msg.header.frame_id = "base_link";
+  error_msg.header.frame_id = "base";
   error_msg.vector = zmp_error;
   zmp_error_pub_->publish(error_msg);
 
@@ -199,7 +199,7 @@ geometry_msgs::msg::PolygonStamped ZMPStabilizer::calculateSupportPolygon()
 
   geometry_msgs::msg::PolygonStamped polygon;
   polygon.header.stamp = this->now();
-  polygon.header.frame_id = "base_link";
+  polygon.header.frame_id = "base";
 
   // Assume feet are separated by hip width (approximate)
   double foot_separation = 0.2;  // 20 cm between feet

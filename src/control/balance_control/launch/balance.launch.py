@@ -30,11 +30,17 @@ def launch_setup(context, *args, **kwargs):
     # Get package share directory
     balance_control_share = get_package_share_directory('balance_control')
 
-    # Path to config file
+    # Path to config files
     config_file = PathJoinSubstitution([
         FindPackageShare('balance_control'),
         'config',
         'balance_params.yaml'
+    ])
+
+    sequences_file = PathJoinSubstitution([
+        FindPackageShare('balance_control'),
+        'config',
+        'get_up_sequences.yaml'
     ])
 
     # Get robot description from robot_state_publisher if running
@@ -100,6 +106,20 @@ def launch_setup(context, *args, **kwargs):
                 remappings=[
                     ('/joint_states', '/joint_states'),
                     ('/robot_description', '/robot_description'),
+                ]
+            ),
+            ComposableNode(
+                package='balance_control',
+                plugin='balance_control::GetUpBehavior',
+                name='get_up_behavior',
+                parameters=[
+                    config_file,
+                    {'use_sim_time': use_sim_time},
+                    {'sequences_config_file': sequences_file}
+                ],
+                extra_arguments=[{'use_intra_process_comms': True}],
+                remappings=[
+                    ('/joint_states', '/joint_states'),
                 ]
             ),
         ],
