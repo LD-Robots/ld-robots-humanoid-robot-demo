@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<robot name="humanoid_with_4point_feet" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Include the four-point contact macro -->
+  <xacro:include filename="$(find humanoid_description)/xacro/sensors/four_point_foot_contact.xacro"/>
+
+  <!-- Include your existing robot URDF -->
+  <!-- This assumes robot.urdf contains all your existing links and joints -->
+
+  <!-- IMPORTANT: In your robot.urdf, you should DISABLE collision on the main foot links -->
+  <!-- We want ONLY the 4 corner spheres to make contact, not the foot mesh itself -->
+
+  <!-- For the main foot collision, comment out or remove collision geometry: -->
+  <!--
+  <gazebo reference="LFootBushing_GPF_1517_12">
+    <collision>
+      <surface>
+        <contact>
+          <collide_bitmask>0x0000</collide_bitmask>  <!- Disable collision ->
+        </contact>
+      </surface>
+    </collision>
+  </gazebo>
+
+  <gazebo reference="RFootBushing_GPF_1517_12">
+    <collision>
+      <surface>
+        <contact>
+          <collide_bitmask>0x0000</collide_bitmask>  <!- Disable collision ->
+        </contact>
+      </surface>
+    </collision>
+  </gazebo>
+  -->
+
+  <!-- Add 4-point contact system to LEFT foot -->
+  <xacro:four_point_foot_contact
+    prefix="left"
+    parent="LFootBushing_GPF_1517_12"
+    foot_length="0.17"
+    foot_width="0.10"
+    contact_radius="0.012"
+    contact_offset_z="-0.02"/>
+
+  <!-- Add 4-point contact system to RIGHT foot -->
+  <xacro:four_point_foot_contact
+    prefix="right"
+    parent="RFootBushing_GPF_1517_12"
+    foot_length="0.17"
+    foot_width="0.10"
+    contact_radius="0.012"
+    contact_offset_z="-0.02"/>
+
+  <!--
+    This will create:
+    - 8 small sphere links (4 per foot at the corners)
+    - 8 fixed joints connecting them to the foot
+    - Soft contact parameters on each sphere (kp=5000, allows 5mm deformation)
+    - 8 contact sensors publishing to topics like:
+      * /left_foot/contact_fl
+      * /left_foot/contact_fr
+      * /left_foot/contact_bl
+      * /left_foot/contact_br
+      * /right_foot/contact_fl
+      * ... etc
+
+    The soft contacts (kp=5000 vs normal 1000000) allow the spheres to
+    independently compress, so Gazebo can stabilize on all 4 points.
+  -->
+
+</robot>

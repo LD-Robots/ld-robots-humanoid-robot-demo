@@ -1,0 +1,81 @@
+<?xml version="1.0" ?>
+<!--
+Pressure sensing mat for humanoid robot testing
+This mat detects contact forces and publishes pressure distribution data
+-->
+<sdf version="1.8">
+  <model name="pressure_mat">
+    <static>true</static>
+    <pose>0 0 0.001 0 0 0</pose>  <!-- 1mm above ground to avoid z-fighting -->
+
+    <link name="mat_base">
+      <!-- Main mat collision -->
+      <collision name="mat_collision">
+        <geometry>
+          <box>
+            <size>1.0 0.6 0.002</size>  <!-- 1m x 0.6m x 2mm mat -->
+          </box>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <kp>1e6</kp>  <!-- Contact stiffness -->
+              <kd>100</kd>  <!-- Contact damping -->
+              <max_vel>0.01</max_vel>
+              <min_depth>0.0001</min_depth>
+            </ode>
+          </contact>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+
+      <!-- Main mat visual -->
+      <visual name="mat_visual">
+        <geometry>
+          <box>
+            <size>1.0 0.6 0.002</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.3 0.3 0.4 0.9</ambient>
+          <diffuse>0.4 0.4 0.5 0.9</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+        </material>
+      </visual>
+
+      <!-- Grid lines for visual reference -->
+      <visual name="grid_visual">
+        <pose>0 0 0.0015 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>1.0 0.6 0.0001</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Contact sensor for the entire mat -->
+      <sensor name="pressure_mat_contact_sensor" type="contact">
+        <always_on>true</always_on>
+        <update_rate>100.0</update_rate>  <!-- 100 Hz sampling -->
+        <contact>
+          <collision>mat_collision</collision>
+        </contact>
+        <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+      </sensor>
+    </link>
+
+    <!-- Plugin to publish contact data to ROS -->
+    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact">
+      <enable>true</enable>
+    </plugin>
+  </model>
+</sdf>

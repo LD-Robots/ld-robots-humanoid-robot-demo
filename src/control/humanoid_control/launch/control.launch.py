@@ -41,8 +41,27 @@ def generate_launch_description():
         arguments=["right_arm_controller", "--controller-manager", "/controller_manager"],
         output="screen"
     )
+
+    # IMU sensor broadcaster spawner
+    spawner_imu = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["imu_sensor_broadcaster", "--controller-manager", "/controller_manager"],
+        output="screen"
+    )
+
+    # Force-torque sensor broadcaster spawner
+    spawner_ft = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["force_torque_sensor_broadcaster", "--controller-manager", "/controller_manager"],
+        output="screen"
+    )
+
     return LaunchDescription([
         spawner_jsb,
+        spawner_imu,
+        spawner_ft,
         spawner_leg,
         spawner_left_arm,
         spawner_right_arm,

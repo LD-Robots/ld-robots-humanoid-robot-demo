@@ -30,6 +30,18 @@ install(DIRECTORY worlds/
   FILES_MATCHING PATTERN "*.sdf" PATTERN "*.world"
 )
 
+# Install model files
+install(DIRECTORY models/
+  DESTINATION share/${PROJECT_NAME}/models
+)
+
+# Install Python scripts
+install(PROGRAMS
+  scripts/pressure_mat_visualizer.py
+  scripts/pressure_mat_visualizer_simple.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

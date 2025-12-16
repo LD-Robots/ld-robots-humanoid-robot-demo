@@ -9,6 +9,13 @@
   <xacro:include filename="$(find humanoid_description)/xacro/common/transmission.xacro"/>
   <xacro:include filename="$(find humanoid_description)/xacro/joints/robot_joints.xacro"/>
   <xacro:include filename="$(find humanoid_description)/xacro/links/robot_links.xacro"/>
+
+  <!-- Sensor includes -->
+  <xacro:include filename="$(find humanoid_description)/xacro/sensors/imu.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/sensors/force_torque.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/sensors/contact.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/xacro/sensors/four_point_foot_contact.xacro"/>
+
   <!-- Robot components -->
   <!-- TODO: Uncomment as xacro files are created
   <xacro:include filename="$(find humanoid_description)/xacro/torso/torso.xacro"/>
@@ -17,8 +24,6 @@
   <xacro:include filename="$(find humanoid_description)/xacro/hands/hand.xacro"/>
   <xacro:include filename="$(find humanoid_description)/xacro/legs/leg.xacro"/>
   <xacro:include filename="$(find humanoid_description)/xacro/sensors/cameras.xacro"/>
-  <xacro:include filename="$(find humanoid_description)/xacro/sensors/imu.xacro"/>
-  <xacro:include filename="$(find humanoid_description)/xacro/sensors/force_torque.xacro"/>
   -->
 
   <!-- ==================== PARAMETERS ==================== -->
@@ -39,7 +44,7 @@
 
   <!-- ==================== BASE LINK ==================== -->
 
- <link name="base_link">
+ <!-- <link name="base_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
@@ -49,15 +54,18 @@
         <color rgba="1 0 0 1"/>
       </material>
     </visual>
-  </link>
+  </link> -->
 
   <!-- Fixed joint from base_link to base (leg structure root) -->
   <!-- This joint lifts the leg structure so feet are at ground level (z=0) -->
-  <joint name="base_link_to_base" type="fixed">
+  <!-- Foot collision mesh extends 0.051m below link origin -->
+  <!-- Subtract 5mm to ensure contact with ground pressure -->
+  <!-- Total offset = 0.749 + 0.051 - 0.005 = 0.795 -->
+  <!-- <joint name="base_link_to_base" type="fixed">
     <parent link="base_link"/>
     <child link="base"/>
-    <origin xyz="0 0 0.813" rpy="0 0 0"/>
-  </joint>
+    <origin xyz="0 0 0.795" rpy="0 0 0"/>
+  </joint> -->
 
   <!-- ==================== COMPONENT INSTANTIATION ==================== -->
 
@@ -101,7 +109,57 @@
 
   <!-- Sensors -->
   <!-- <xacro:cameras parent="head_link"/> -->
-  <!-- <xacro:imu parent="torso_link"/> -->
+
+  <!-- IMU in base/torso -->
+  <xacro:imu_sensor parent="base">
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>
+  </xacro:imu_sensor>
+
+  <!-- Force-Torque sensors in feet (simplified version using ankle joints) -->
+  <xacro:ankle_ft_sensor_simple prefix="left" joint_name="dof_left_ankle_02"/>
+  <xacro:ankle_ft_sensor_simple prefix="right" joint_name="dof_right_ankle_02"/>
+
+  <!-- Gazebo-specific collision and friction properties for feet -->
+  <gazebo reference="LFootBushing_GPF_1517_12">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>5000.0</kp>  <!-- SOFT: Allows 4-point contact -->
+    <kd>50.0</kd>
+    <minDepth>0.005</minDepth>  <!-- Allow 5mm penetration -->
+    <maxContacts>20</maxContacts>  <!-- Allow many contact points -->
+  </gazebo>
+
+  <gazebo reference="RFootBushing_GPF_1517_12">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>5000.0</kp>  <!-- SOFT: Allows 4-point contact -->
+    <kd>50.0</kd>
+    <minDepth>0.005</minDepth>  <!-- Allow 5mm penetration -->
+    <maxContacts>20</maxContacts>  <!-- Allow many contact points -->
+  </gazebo>
+
+  <xacro:contact_sensor prefix="left" link_name="LFootBushing_GPF_1517_12" collision_name="LFootBushing_GPF_1517_12.collision"/>
+  <xacro:contact_sensor prefix="right" link_name="RFootBushing_GPF_1517_12" collision_name="RFootBushing_GPF_1517_12.collision"/>
+
+  <!-- Four-point contact sensors at foot corners -->
+  <!-- DISABLED: Causes instability issues -->
+  <!--
+  <xacro:four_point_foot_contact
+    prefix="left"
+    parent="LFootBushing_GPF_1517_12"
+    foot_length="0.17"
+    foot_width="0.10"
+    contact_radius="0.012"
+    contact_offset_z="-0.035"/>
+
+  <xacro:four_point_foot_contact
+    prefix="right"
+    parent="RFootBushing_GPF_1517_12"
+    foot_length="0.17"
+    foot_width="0.10"
+    contact_radius="0.012"
+    contact_offset_z="-0.035"/>
+  -->
 
   <!-- ==================== ROS2_CONTROL ==================== -->
 
@@ -213,6 +271,40 @@
       <state_interface name="position"/>
       <state_interface name="velocity"/>
     </joint>
+
+    <!-- IMU Sensor -->
+    <sensor name="imu_sensor">
+      <state_interface name="orientation.x"/>
+      <state_interface name="orientation.y"/>
+      <state_interface name="orientation.z"/>
+      <state_interface name="orientation.w"/>
+      <state_interface name="angular_velocity.x"/>
+      <state_interface name="angular_velocity.y"/>
+      <state_interface name="angular_velocity.z"/>
+      <state_interface name="linear_acceleration.x"/>
+      <state_interface name="linear_acceleration.y"/>
+      <state_interface name="linear_acceleration.z"/>
+    </sensor>
+
+    <!-- Left Foot Force-Torque Sensor -->
+    <sensor name="left_ft_sensor">
+      <state_interface name="force.x"/>
+      <state_interface name="force.y"/>
+      <state_interface name="force.z"/>
+      <state_interface name="torque.x"/>
+      <state_interface name="torque.y"/>
+      <state_interface name="torque.z"/>
+    </sensor>
+
+    <!-- Right Foot Force-Torque Sensor -->
+    <sensor name="right_ft_sensor">
+      <state_interface name="force.x"/>
+      <state_interface name="force.y"/>
+      <state_interface name="force.z"/>
+      <state_interface name="torque.x"/>
+      <state_interface name="torque.y"/>
+      <state_interface name="torque.z"/>
+    </sensor>
   </ros2_control>
 
   <!-- Gazebo ros2_control plugin -->

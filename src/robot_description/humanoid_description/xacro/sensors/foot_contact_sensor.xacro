@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    Individual Foot Contact Sensor Macro
+    Creates a cylinder sensor for force/contact measurement at specific points on the foot
+
+    Parameters:
+    - prefix: "left" or "right"
+    - index: Sensor number (1-4 for each foot)
+    - parent: Parent link (foot link)
+    - xyz: Position relative to parent (you will adjust this)
+    - rpy: Orientation relative to parent
+    - radius: Cylinder radius (default: 0.01m = 10mm)
+    - length: Cylinder length/height (default: 0.005m = 5mm)
+  -->
+
+  <xacro:macro name="foot_contact_sensor" params="prefix index parent *origin radius:=0.01 length:=0.005">
+
+    <!-- Sensor Link (small cylinder) -->
+    <link name="${prefix}_foot_sensor_${index}_link">
+      <inertial>
+        <mass value="0.001"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.000001" ixy="0" ixz="0"
+                 iyy="0.000001" iyz="0"
+                 izz="0.000001"/>
+      </inertial>
+
+      <visual>
+        <origin xyz="0 0 ${-length/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${radius}" length="${length}"/>
+        </geometry>
+        <material name="sensor_material_${prefix}_${index}">
+          <color rgba="0.8 0.2 0.2 0.8"/>  <!-- Semi-transparent red -->
+        </material>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 ${-length/2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${radius}" length="${length}"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Fixed Joint connecting sensor to foot -->
+    <joint name="${prefix}_foot_sensor_${index}_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${prefix}_foot_sensor_${index}_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <!-- Gazebo properties for the sensor collision -->
+    <gazebo reference="${prefix}_foot_sensor_${index}_link">
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+      <kp>1000000.0</kp>
+      <kd>100.0</kd>
+      <minDepth>0.001</minDepth>
+      <material>Gazebo/Red</material>
+    </gazebo>
+
+    <!-- Gazebo Force-Torque Sensor on the joint -->
+    <gazebo reference="${prefix}_foot_sensor_${index}_joint">
+      <sensor name="${prefix}_foot_sensor_${index}_ft" type="force_torque">
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <force_torque>
+          <frame>sensor</frame>
+          <measure_direction>child_to_parent</measure_direction>
+        </force_torque>
+        <plugin filename="gz-sim-forcetorque-system" name="gz::sim::systems::ForceTorque">
+          <ros>
+            <namespace>/</namespace>
+            <remapping>~/out:=${prefix}_foot/sensor_${index}/ft_data</remapping>
+          </ros>
+          <frame_name>${prefix}_foot_sensor_${index}_link</frame_name>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+    <!-- Gazebo Contact Sensor -->
+    <gazebo reference="${prefix}_foot_sensor_${index}_link">
+      <sensor name="${prefix}_foot_sensor_${index}_contact" type="contact">
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <contact>
+          <collision>${prefix}_foot_sensor_${index}_link::${prefix}_foot_sensor_${index}_link::__default__</collision>
+        </contact>
+        <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact">
+          <ros>
+            <namespace>/</namespace>
+            <remapping>~/out:=${prefix}_foot/sensor_${index}/contact</remapping>
+          </ros>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>

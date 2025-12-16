@@ -553,7 +553,7 @@
     <collision name="LFootBushing_GPF_1517_12.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="LFootBushing_GPF_1517_12_collision_geometry">
-        <mesh filename="package://humanoid_description/meshes/collision/LFootBushing_GPF_1517_12.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/LFootBushing_GPF_1517_12.stl"/>
       </geometry>
     </collision>
     <inertial name="LFootBushing_GPF_1517_12_inertial">
@@ -562,6 +562,31 @@
       <origin xyz="-0.016549 0.031142 -0.012943" rpy="0 0 0"/>
     </inertial>
   </link>
+
+  <!-- Gazebo: Left foot rubber material properties (extremely soft foam) -->
+  <gazebo reference="LFootBushing_GPF_1517_12">
+    <max_contacts>20</max_contacts>  <!-- Allow many contact points -->
+    <collision>
+      <surface>
+        <contact>
+          <collide_bitmask>0xffff</collide_bitmask>
+          <ode>
+            <kp>1000.0</kp>         <!-- Extremely soft like foam (1000x softer) -->
+            <kd>10.0</kd>           <!-- Low damping for squishiness -->
+            <max_vel>0.1</max_vel>
+            <min_depth>0.02</min_depth>  <!-- Allow 2cm penetration -->
+          </ode>
+        </contact>
+        <friction>
+          <ode>
+            <mu>2.0</mu>   <!-- Very high friction -->
+            <mu2>2.0</mu2>
+          </ode>
+        </friction>
+      </surface>
+    </collision>
+    <material>Gazebo/Black</material>
+  </gazebo>
   <link name="KD_D_401R">
     <visual name="KD_D_401R_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -597,7 +622,7 @@
     <collision name="RFootBushing_GPF_1517_12.collision">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry name="RFootBushing_GPF_1517_12_collision_geometry">
-        <mesh filename="package://humanoid_description/meshes/collision/RFootBushing_GPF_1517_12.collision.stl"/>
+        <mesh filename="package://humanoid_description/meshes/visual/RFootBushing_GPF_1517_12.stl"/>
       </geometry>
     </collision>
     <inertial name="RFootBushing_GPF_1517_12_inertial">
@@ -606,6 +631,31 @@
       <origin xyz="-0.016546 -0.031136 -0.012942" rpy="0 0 0"/>
     </inertial>
   </link>
+
+  <!-- Gazebo: Right foot rubber material properties (extremely soft foam) -->
+  <gazebo reference="RFootBushing_GPF_1517_12">
+    <max_contacts>20</max_contacts>  <!-- Allow many contact points -->
+    <collision>
+      <surface>
+        <contact>
+          <collide_bitmask>0xffff</collide_bitmask>
+          <ode>
+            <kp>1000.0</kp>         <!-- Extremely soft like foam (1000x softer) -->
+            <kd>10.0</kd>           <!-- Low damping for squishiness -->
+            <max_vel>0.1</max_vel>
+            <min_depth>0.02</min_depth>  <!-- Allow 2cm penetration -->
+          </ode>
+        </contact>
+        <friction>
+          <ode>
+            <mu>2.0</mu>   <!-- Very high friction -->
+            <mu2>2.0</mu2>
+          </ode>
+        </friction>
+      </surface>
+    </collision>
+    <material>Gazebo/Black</material>
+  </gazebo>
   <link name="PRT0001">
     <visual name="PRT0001_visual">
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -650,4 +700,125 @@
       <origin xyz="-0.000339 -0.000063 0.027268" rpy="0 0 0"/>
     </inertial>
   </link>
+
+  <!-- LEFT FOOT CONTACT SENSOR 1 -->
+  <link name="left_foot_sensor_1_link">
+    <visual name="left_foot_sensor_1_visual">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry name="left_foot_sensor_1_geometry">
+        <cylinder radius="0.007" length="0.005"/>
+      </geometry>
+      <material name="left_foot_sensor_1_material">
+        <color rgba="0.8 0.2 0.2 0.8"/>
+      </material>
+    </visual>
+    <collision name="left_foot_sensor_1.collision">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry name="left_foot_sensor_1_collision_geometry">
+        <cylinder radius="0.008" length="0.005"/>
+      </geometry>
+    </collision>
+    <inertial name="left_foot_sensor_1_inertial">
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" iyy="0.000001" izz="0.000001" ixy="0" ixz="0" iyz="0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="left_foot_sensor_1_joint" type="fixed">
+    <parent link="LFootBushing_GPF_1517_12"/>
+    <child link="left_foot_sensor_1_link"/>
+    <origin xyz="0.061 0.056 0.0055" rpy="1.5708 0 0"/>
+  </joint>
+
+  <!-- LEFT FOOT CONTACT SENSOR 2 -->
+  <link name="left_foot_sensor_2_link">
+    <visual name="left_foot_sensor_2_visual">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry name="left_foot_sensor_2_geometry">
+        <cylinder radius="0.007" length="0.005"/>
+      </geometry>
+      <material name="left_foot_sensor_2_material">
+        <color rgba="0.8 0.2 0.2 0.8"/>
+      </material>
+    </visual>
+    <collision name="left_foot_sensor_2.collision">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry name="left_foot_sensor_2_collision_geometry">
+        <cylinder radius="0.008" length="0.005"/>
+      </geometry>
+    </collision>
+    <inertial name="left_foot_sensor_2_inertial">
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" iyy="0.000001" izz="0.000001" ixy="0" ixz="0" iyz="0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="left_foot_sensor_2_joint" type="fixed">
+    <parent link="LFootBushing_GPF_1517_12"/>
+    <child link="left_foot_sensor_2_link"/>
+    <origin xyz="-0.105 0.06 -0.035" rpy="1.5708 0 0"/>
+  </joint>
+
+  <!-- RIGHT FOOT CONTACT SENSOR 1 -->
+  <link name="right_foot_sensor_1_link">
+    <visual name="right_foot_sensor_1_visual">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry name="right_foot_sensor_1_geometry">
+        <cylinder radius="0.007" length="0.005"/>
+      </geometry>
+      <material name="right_foot_sensor_1_material">
+        <color rgba="0.2 0.2 0.8 0.8"/>
+      </material>
+    </visual>
+    <collision name="right_foot_sensor_1.collision">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry name="right_foot_sensor_1_collision_geometry">
+        <cylinder radius="0.008" length="0.005"/>
+      </geometry>
+    </collision>
+    <inertial name="right_foot_sensor_1_inertial">
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" iyy="0.000001" izz="0.000001" ixy="0" ixz="0" iyz="0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="right_foot_sensor_1_joint" type="fixed">
+    <parent link="RFootBushing_GPF_1517_12"/>
+    <child link="right_foot_sensor_1_link"/>
+    <origin xyz="0.061 -0.056 0.0055" rpy="1.5708 0 0"/>
+  </joint>
+
+  <!-- RIGHT FOOT CONTACT SENSOR 2
+  <link name="right_foot_sensor_2_link">
+    <visual name="right_foot_sensor_2_visual">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry name="right_foot_sensor_2_geometry">
+        <cylinder radius="0.007" length="0.005"/>
+      </geometry>
+      <material name="right_foot_sensor_2_material">
+        <color rgba="0.2 0.2 0.8 0.8"/>
+      </material>
+    </visual>
+    <collision name="right_foot_sensor_2.collision">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry name="right_foot_sensor_2_collision_geometry">
+        <cylinder radius="0.008" length="0.005"/>
+      </geometry>
+    </collision>
+    <inertial name="right_foot_sensor_2_inertial">
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" iyy="0.000001" izz="0.000001" ixy="0" ixz="0" iyz="0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="right_foot_sensor_2_joint" type="fixed">
+    <parent link="RFootBushing_GPF_1517_12"/>
+    <child link="right_foot_sensor_2_link"/>
+    <origin xyz="-0.105 -0.06 -0.035" rpy="1.5708 0 0"/>
+  </joint> -->
+
 </robot>

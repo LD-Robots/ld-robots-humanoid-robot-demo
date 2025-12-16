@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    Force-Torque Sensor Macro
+    Adds F/T sensors between ankle and foot (for ground reaction forces)
+  -->
+
+  <xacro:macro name="foot_ft_sensor" params="prefix parent child *origin">
+
+    <!-- F/T Sensor Link (between ankle and foot) -->
+    <link name="${prefix}_ft_sensor_link">
+      <inertial>
+        <mass value="0.001"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.015" length="0.01"/>
+        </geometry>
+        <material name="ft_sensor_gray">
+          <color rgba="0.5 0.5 0.5 1.0"/>
+        </material>
+      </visual>
+    </link>
+
+    <!-- Joint from parent (ankle) to sensor -->
+    <joint name="${prefix}_ft_sensor_joint_parent" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${prefix}_ft_sensor_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <!-- Joint from sensor to child (foot) -->
+    <joint name="${prefix}_ft_sensor_joint_child" type="fixed">
+      <parent link="${prefix}_ft_sensor_link"/>
+      <child link="${child}"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Gazebo Force-Torque Sensor Plugin -->
+    <gazebo reference="${prefix}_ft_sensor_joint_parent">
+      <sensor name="${prefix}_ft_sensor" type="force_torque">
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <force_torque>
+          <frame>sensor</frame>
+          <measure_direction>child_to_parent</measure_direction>
+        </force_torque>
+        <plugin filename="gz-sim-forcetorque-system" name="gz::sim::systems::ForceTorque">
+          <ros>
+            <namespace>/</namespace>
+            <remapping>~/out:=${prefix}_foot/ft_data</remapping>
+          </ros>
+          <frame_name>${prefix}_ft_sensor_link</frame_name>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+  </xacro:macro>
+
+  <!--
+    Simplified version: Just adds F/T sensor plugin to existing ankle joint
+    Use this if you don't want to add extra links
+  -->
+  <xacro:macro name="ankle_ft_sensor_simple" params="prefix joint_name">
+
+    <gazebo reference="${joint_name}">
+      <sensor name="${prefix}_ft_sensor" type="force_torque">
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <force_torque>
+          <frame>sensor</frame>
+          <measure_direction>child_to_parent</measure_direction>
+        </force_torque>
+        <plugin filename="gz-sim-forcetorque-system" name="gz::sim::systems::ForceTorque">
+          <ros>
+            <namespace>/</namespace>
+            <remapping>~/out:=${prefix}_foot/ft_data</remapping>
+          </ros>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>

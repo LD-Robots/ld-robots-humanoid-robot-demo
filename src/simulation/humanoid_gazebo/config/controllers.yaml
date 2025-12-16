@@ -5,6 +5,12 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
       publish_rate: 50
 
+    imu_sensor_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
+
+    force_torque_sensor_broadcaster:
+      type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
+
     legs_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
@@ -63,3 +69,14 @@ right_arm_controller:
       - position
       - velocity
     allow_nonzero_velocity_at_trajectory_end: true
+
+imu_sensor_broadcaster:
+  ros__parameters:
+    sensor_name: imu_sensor
+    frame_id: imu_link
+
+force_torque_sensor_broadcaster:
+  ros__parameters:
+    sensor_name: left_ft_sensor
+    frame_id: left_ft_sensor_link
+    topic_name: left_foot/ft_data
