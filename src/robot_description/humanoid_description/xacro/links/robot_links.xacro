@@ -9,7 +9,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/package://humanoid_description/urdf/meshes/pelvis.STL" />
+                <mesh filename="package://humanoid_description/meshes/pelvis.STL" />
             </geometry>
             <material name="dark" />
         </visual>
@@ -24,14 +24,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/pelvis_contour_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/pelvis_contour_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/pelvis_contour_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/pelvis_contour_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -45,14 +45,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_hip_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_hip_pitch_link.STL" />
             </geometry>
             <material name="dark" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_hip_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_hip_pitch_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -66,14 +66,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_hip_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_hip_roll_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_hip_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_hip_roll_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -87,14 +87,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_hip_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_hip_yaw_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_hip_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_hip_yaw_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -108,14 +108,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_knee_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_knee_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_knee_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_knee_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -129,14 +129,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_ankle_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_ankle_pitch_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_ankle_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_ankle_pitch_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -150,7 +150,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_ankle_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_ankle_roll_link.STL" />
             </geometry>
             <material name="dark" />
         </visual>
@@ -189,14 +189,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_hip_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_hip_pitch_link.STL" />
             </geometry>
             <material name="dark" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_hip_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_hip_pitch_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -210,14 +210,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_hip_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_hip_roll_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_hip_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_hip_roll_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -231,14 +231,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_hip_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_hip_yaw_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_hip_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_hip_yaw_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -252,14 +252,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_knee_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_knee_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_knee_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_knee_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -273,14 +273,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_ankle_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_ankle_pitch_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_ankle_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_ankle_pitch_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -294,7 +294,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_ankle_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_ankle_roll_link.STL" />
             </geometry>
             <material name="dark" />
         </visual>
@@ -333,7 +333,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/waist_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/waist_yaw_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
@@ -348,7 +348,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/waist_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/waist_roll_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
@@ -363,14 +363,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/torso_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/torso_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/torso_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/torso_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -384,14 +384,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/logo_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/logo_link.STL" />
             </geometry>
             <material name="dark" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/logo_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/logo_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -405,14 +405,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/head_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/head_link.STL" />
             </geometry>
             <material name="dark" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/head_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/head_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -426,14 +426,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/waist_support_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/waist_support_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/waist_support_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/waist_support_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -455,7 +455,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_shoulder_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_shoulder_pitch_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
@@ -476,7 +476,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_shoulder_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_shoulder_roll_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
@@ -497,14 +497,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_shoulder_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_shoulder_yaw_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_shoulder_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_shoulder_yaw_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -518,14 +518,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_elbow_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_elbow_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_elbow_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_elbow_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -539,14 +539,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_wrist_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_wrist_roll_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_wrist_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_wrist_roll_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -560,14 +560,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_wrist_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_wrist_pitch_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_wrist_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_wrist_pitch_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -581,14 +581,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_wrist_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_wrist_yaw_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_wrist_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_wrist_yaw_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -602,7 +602,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/left_rubber_hand.STL" />
+                <mesh filename="package://humanoid_description/meshes/left_rubber_hand.STL" />
             </geometry>
             <material name="white" />
         </visual>
@@ -617,7 +617,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_shoulder_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_shoulder_pitch_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
@@ -638,7 +638,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_shoulder_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_shoulder_roll_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
@@ -659,14 +659,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_shoulder_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_shoulder_yaw_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_shoulder_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_shoulder_yaw_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -680,14 +680,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_elbow_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_elbow_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_elbow_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_elbow_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -701,14 +701,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_wrist_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_wrist_roll_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_wrist_roll_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_wrist_roll_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -722,14 +722,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_wrist_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_wrist_pitch_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_wrist_pitch_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_wrist_pitch_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -743,14 +743,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_wrist_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_wrist_yaw_link.STL" />
             </geometry>
             <material name="white" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_wrist_yaw_link.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_wrist_yaw_link.STL" />
             </geometry>
         </collision>
     </link>
@@ -764,7 +764,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://humanoid_description/urdf/meshes/right_rubber_hand.STL" />
+                <mesh filename="package://humanoid_description/meshes/right_rubber_hand.STL" />
             </geometry>
             <material name="white" />
         </visual>
