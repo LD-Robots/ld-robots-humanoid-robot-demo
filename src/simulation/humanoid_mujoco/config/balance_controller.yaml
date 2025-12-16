@@ -1,0 +1,50 @@
+# Balance Controller Parameters for MuJoCo Simulation
+
+balance_controller:
+  ros__parameters:
+    use_sim_time: true
+    control_rate: 100.0  # Hz
+
+    # Center of Mass (CoM) control
+    com_height_desired: 0.85  # meters
+    com_height_kp: 1000.0
+    com_height_kd: 100.0
+
+    # Zero Moment Point (ZMP) control
+    zmp_control_enabled: true
+    zmp_kp: 500.0
+    zmp_kd: 50.0
+
+    # Ankle strategy
+    ankle_strategy_enabled: true
+    ankle_roll_kp: 200.0
+    ankle_roll_kd: 20.0
+    ankle_pitch_kp: 200.0
+    ankle_pitch_kd: 20.0
+    ankle_max_angle: 0.3  # radians (~17 degrees)
+
+    # Hip strategy (for larger disturbances)
+    hip_strategy_enabled: true
+    hip_strategy_threshold: 0.05  # meters of CoM deviation
+    hip_kp: 300.0
+    hip_kd: 30.0
+
+    # Stepping strategy (for recovery)
+    stepping_strategy_enabled: true
+    stepping_threshold: 0.10  # meters of CoM deviation
+    step_width: 0.2  # meters
+    step_length: 0.15  # meters
+
+    # Torso stabilization
+    torso_orientation_kp: 500.0
+    torso_orientation_kd: 50.0
+    torso_desired_pitch: 0.0  # radians
+    torso_desired_roll: 0.0  # radians
+
+    # Foot contact
+    min_foot_contact_force: 10.0  # Newtons
+    double_support_duration: 0.2  # seconds
+
+    # Safety limits
+    max_torso_tilt: 0.5  # radians (~28 degrees)
+    max_com_velocity: 1.0  # m/s

@@ -1,0 +1,14 @@
+# MuJoCo Simulation Requirements
+
+# Core MuJoCo
+mujoco>=3.0.0
+
+# Numerical computing
+numpy>=1.20.0
+
+# ROS 2 (installed via apt, listed for reference)
+# ros-jazzy-rclpy
+# ros-jazzy-sensor-msgs
+# ros-jazzy-geometry-msgs
+# ros-jazzy-nav-msgs
+# ros-jazzy-tf2-ros

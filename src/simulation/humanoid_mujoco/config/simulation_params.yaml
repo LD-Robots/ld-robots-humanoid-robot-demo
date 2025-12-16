@@ -1,0 +1,50 @@
+# MuJoCo Simulation Parameters
+
+mujoco_simulator:
+  ros__parameters:
+    # Simulation control
+    use_sim_time: true
+    publish_rate: 100.0  # Hz
+    realtime_factor: 1.0  # 1.0 = realtime, >1.0 = faster, <1.0 = slower
+
+    # Model settings
+    model_path: ""  # Set via launch file
+
+    # Viewer settings
+    use_viewer: true
+    viewer_width: 1920
+    viewer_height: 1080
+
+    # Physics settings
+    timestep: 0.002  # 2ms (500 Hz)
+    solver_iterations: 50
+    solver_type: "Newton"  # Newton, CG, or PGS
+
+    # Contact settings
+    contact_slip: 0.001
+    contact_friction: [1.0, 0.005, 0.0001]  # [sliding, torsional, rolling]
+
+    # Joint control
+    num_joints: 27  # Total actuated joints
+    position_control_kp: 100.0
+    position_control_kd: 10.0
+    velocity_control_kp: 50.0
+
+    # Sensor publishing
+    publish_joint_states: true
+    publish_imu: true
+    publish_foot_forces: true
+    publish_torso_pose: true
+    publish_tf: true
+
+# Robot State Publisher
+robot_state_publisher:
+  ros__parameters:
+    use_sim_time: true
+    publish_frequency: 100.0
+
+# Joint State Publisher
+joint_state_publisher:
+  ros__parameters:
+    use_sim_time: true
+    source_list: ["mujoco_simulator"]

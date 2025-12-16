@@ -1,0 +1,92 @@
+# Walking Controller Parameters for MuJoCo Simulation
+
+locomotion_controller:
+  ros__parameters:
+    use_sim_time: true
+    control_rate: 100.0  # Hz
+
+    # Gait parameters
+    gait_type: "walk"  # walk, run, trot
+    step_frequency: 0.5  # Hz (2 seconds per step cycle)
+    step_length: 0.15  # meters
+    step_width: 0.2  # meters
+    step_height: 0.05  # meters
+
+    # Walking speed limits
+    max_forward_velocity: 0.5  # m/s
+    max_lateral_velocity: 0.3  # m/s
+    max_angular_velocity: 0.5  # rad/s
+
+    # Double support phase
+    double_support_ratio: 0.2  # 20% of gait cycle
+    single_support_ratio: 0.8  # 80% of gait cycle
+
+    # Swing leg trajectory
+    swing_trajectory_type: "polynomial"  # polynomial, bezier, cycloid
+    swing_polynomial_order: 5
+    swing_clearance: 0.05  # meters
+
+    # Stance leg control
+    stance_foot_compliance_enabled: true
+    stance_ankle_kp: 300.0
+    stance_ankle_kd: 30.0
+
+    # ZMP tracking
+    zmp_tracking_enabled: true
+    zmp_margin: 0.02  # meters from foot edge
+    zmp_kp: 800.0
+    zmp_kd: 80.0
+
+    # CoM trajectory
+    com_height: 0.85  # meters
+    com_height_variation: 0.02  # meters (sinusoidal during walking)
+    com_lateral_sway: 0.03  # meters
+    com_kp: 1000.0
+    com_kd: 100.0
+
+    # Torso orientation
+    torso_pitch_forward: 0.05  # radians during walking
+    torso_pitch_kp: 500.0
+    torso_pitch_kd: 50.0
+    torso_yaw_kp: 300.0
+    torso_yaw_kd: 30.0
+
+    # Arm swing
+    arm_swing_enabled: true
+    arm_swing_amplitude: 0.3  # radians
+    arm_swing_phase_offset: 3.14159  # radians (180 degrees, opposite to legs)
+
+    # Gait adaptation
+    terrain_adaptation_enabled: false
+    slope_compensation_enabled: false
+    uneven_terrain_enabled: false
+
+    # Energy efficiency
+    minimize_joint_acceleration: true
+    minimize_foot_impact: true
+    passive_dynamics_weight: 0.3
+
+footstep_planner:
+  ros__parameters:
+    use_sim_time: true
+
+    # Planning horizon
+    planning_horizon: 5  # number of steps
+    replanning_frequency: 1.0  # Hz
+
+    # Footstep constraints
+    min_step_length: 0.05  # meters
+    max_step_length: 0.30  # meters
+    min_step_width: 0.15  # meters
+    max_step_width: 0.30  # meters
+    max_step_angle: 0.5  # radians (~28 degrees)
+
+    # Collision avoidance
+    obstacle_margin: 0.10  # meters
+    foot_clearance: 0.05  # meters
+
+    # Cost weights
+    distance_cost_weight: 1.0
+    rotation_cost_weight: 0.5
+    smoothness_cost_weight: 0.3
+    stability_cost_weight: 2.0
