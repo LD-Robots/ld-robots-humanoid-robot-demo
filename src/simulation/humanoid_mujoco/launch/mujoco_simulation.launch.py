@@ -1,24 +1,20 @@
 #!/usr/bin/env python3
 """
 Launch MuJoCo simulation for humanoid robot.
+Uses the existing robot.xml from humanoid_description package.
 """
 
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
-    # Package directories
-    humanoid_mujoco_dir = get_package_share_directory('humanoid_mujoco')
-    humanoid_description_dir = get_package_share_directory('humanoid_description')
-
     # Launch arguments
     use_viewer_arg = DeclareLaunchArgument(
         'use_viewer',
@@ -28,16 +24,16 @@ def generate_launch_description():
 
     use_rviz_arg = DeclareLaunchArgument(
         'use_rviz',
-        default_value='true',
+        default_value='false',
         description='Whether to launch RViz'
     )
 
     model_path_arg = DeclareLaunchArgument(
         'model_path',
         default_value=PathJoinSubstitution([
-            FindPackageShare('humanoid_mujoco'),
-            'models',
-            'humanoid.xml'
+            FindPackageShare('humanoid_description'),
+            'urdf',
+            'robot.xml'
         ]),
         description='Path to MuJoCo model file'
     )
@@ -52,27 +48,6 @@ def generate_launch_description():
         'realtime_factor',
         default_value='1.0',
         description='Simulation speed (1.0 = realtime)'
-    )
-
-    # URDF for RViz visualization
-    urdf_path = PathJoinSubstitution([
-        FindPackageShare('humanoid_description'),
-        'urdf',
-        'humanoid.urdf.xacro'
-    ])
-
-    robot_description = Command(['xacro ', urdf_path])
-
-    # Robot State Publisher
-    robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher',
-        output='screen',
-        parameters=[{
-            'robot_description': robot_description,
-            'use_sim_time': True
-        }]
     )
 
     # MuJoCo Simulator Node
@@ -90,7 +65,7 @@ def generate_launch_description():
         }]
     )
 
-    # RViz
+    # RViz (optional)
     rviz_config_file = PathJoinSubstitution([
         FindPackageShare('humanoid_mujoco'),
         'config',
@@ -113,7 +88,6 @@ def generate_launch_description():
         model_path_arg,
         publish_rate_arg,
         realtime_factor_arg,
-        robot_state_publisher,
         mujoco_simulator,
         rviz,
     ])
