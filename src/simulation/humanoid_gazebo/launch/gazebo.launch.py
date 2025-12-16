@@ -4,9 +4,10 @@ Launch Gazebo simulation with the humanoid robot.
 
 This launch file:
 1. Starts Gazebo Harmonic with a world file
-2. Spawns the humanoid robot from humanoid_leg_description
+2. Spawns the humanoid robot from humanoid_description
 3. Sets up the ROS-Gazebo bridge for topics
 4. Configures robot_state_publisher
+5. Loads ros2_control controllers for the robot
 """
 
 import os
@@ -103,9 +104,9 @@ def generate_launch_description():
     ])
 
     urdf_file = PathJoinSubstitution([
-        FindPackageShare('humanoid_description'),
+        FindPackageShare('humanoid_gazebo'),
         'urdf',
-        'humanoid.urdf.xacro'
+        'humanoid_gazebo.urdf.xacro'
     ])
 
     controllers_file = PathJoinSubstitution([
@@ -115,7 +116,7 @@ def generate_launch_description():
     ])
 
     # Get URDF via xacro
-    humanoid_leg_description_content = ParameterValue(
+    robot_description_content = ParameterValue(
         Command([
             PathJoinSubstitution([FindExecutable(name='xacro')]),
             ' ',
@@ -128,7 +129,7 @@ def generate_launch_description():
         value_type=str
     )
 
-    robot_description = {'robot_description': humanoid_leg_description_content}
+    robot_description = {'robot_description': robot_description_content}
 
     # Robot State Publisher
     robot_state_publisher_node = Node(

@@ -30,6 +30,12 @@ install(DIRECTORY worlds/
   FILES_MATCHING PATTERN "*.sdf" PATTERN "*.world"
 )
 
+# Install URDF files
+install(DIRECTORY urdf/
+  DESTINATION share/${PROJECT_NAME}/urdf
+  FILES_MATCHING PATTERN "*.xacro"
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

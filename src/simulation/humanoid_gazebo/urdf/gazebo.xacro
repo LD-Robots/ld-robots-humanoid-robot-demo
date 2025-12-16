@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ==================== GAZEBO PLUGINS ==================== -->
+
+  <xacro:macro name="humanoid_gazebo_plugins">
+
+    <!-- Gazebo ros2_control plugin -->
+    <gazebo>
+      <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>$(find humanoid_gazebo)/config/controllers.yaml</parameters>
+      </plugin>
+    </gazebo>
+
+    <!-- Gazebo contact sensor for feet (optional) -->
+    <!-- Uncomment if you need contact sensing
+    <gazebo reference="left_ankle_roll_link">
+      <sensor name="left_foot_contact" type="contact">
+        <contact>
+          <collision>left_ankle_roll_link_collision</collision>
+        </contact>
+        <update_rate>100</update_rate>
+        <plugin filename="libgazebo_ros_bumper.so" name="left_foot_contact_sensor">
+          <bumperTopicName>left_foot_contact</bumperTopicName>
+          <frameName>left_ankle_roll_link</frameName>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+    <gazebo reference="right_ankle_roll_link">
+      <sensor name="right_foot_contact" type="contact">
+        <contact>
+          <collision>right_ankle_roll_link_collision</collision>
+        </contact>
+        <update_rate>100</update_rate>
+        <plugin filename="libgazebo_ros_bumper.so" name="right_foot_contact_sensor">
+          <bumperTopicName>right_foot_contact</bumperTopicName>
+          <frameName>right_ankle_roll_link</frameName>
+        </plugin>
+      </sensor>
+    </gazebo>
+    -->
+
+    <!-- Gazebo IMU sensor (optional) -->
+    <!-- Uncomment if you need IMU data in simulation
+    <gazebo reference="imu_in_torso">
+      <sensor name="imu_sensor" type="imu">
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+          <ros>
+            <namespace>/imu</namespace>
+            <remapping>~/out:=data</remapping>
+          </ros>
+          <initial_orientation_as_reference>false</initial_orientation_as_reference>
+        </plugin>
+      </sensor>
+    </gazebo>
+    -->
+
+    <!-- Gazebo properties for links (friction, damping, etc.) -->
+    <gazebo reference="left_ankle_roll_link">
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+      <kp>1000000.0</kp>
+      <kd>100.0</kd>
+      <minDepth>0.001</minDepth>
+      <maxVel>1.0</maxVel>
+    </gazebo>
+
+    <gazebo reference="right_ankle_roll_link">
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+      <kp>1000000.0</kp>
+      <kd>100.0</kd>
+      <minDepth>0.001</minDepth>
+      <maxVel>1.0</maxVel>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>
