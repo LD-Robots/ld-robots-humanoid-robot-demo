@@ -11,6 +11,7 @@ from sensor_msgs.msg import JointState, Imu
 from geometry_msgs.msg import WrenchStamped, TransformStamped, PoseStamped
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64MultiArray
+from rosgraph_msgs.msg import Clock
 from tf2_ros import TransformBroadcaster
 import time
 
@@ -57,6 +58,7 @@ class MuJoCoSimulator(Node):
             return
 
         # ROS 2 Publishers
+        self.clock_pub = self.create_publisher(Clock, 'clock', 10)
         self.joint_state_pub = self.create_publisher(JointState, 'joint_states', 10)
         self.imu_pub = self.create_publisher(Imu, 'imu/data', 10)
         self.odom_pub = self.create_publisher(Odometry, 'odom', 10)
@@ -82,11 +84,15 @@ class MuJoCoSimulator(Node):
         self.dt = self.model.opt.timestep
         self.publish_period = 1.0 / self.publish_rate
 
-        # Create timer for publishing
-        self.publish_timer = self.create_timer(self.publish_period, self.publish_state)
+        # Publish every N simulation steps (deterministic)
+        physics_rate = 1.0 / self.dt  # Hz
+        self.publish_every_n_steps = max(1, int(physics_rate / self.publish_rate))
+        self.step_counter = 0
 
         # Simulation thread
         self.simulation_active = True
+
+        self.get_logger().info(f'Physics: {physics_rate} Hz, Publishing every {self.publish_every_n_steps} steps')
 
         self.get_logger().info('MuJoCo Simulator initialized')
 
@@ -110,6 +116,15 @@ class MuJoCoSimulator(Node):
         if not MUJOCO_AVAILABLE:
             return
 
+        # Publish simulation clock
+        clock_msg = Clock()
+        sim_time_sec = int(self.data.time)
+        sim_time_nsec = int((self.data.time - sim_time_sec) * 1e9)
+        clock_msg.clock.sec = sim_time_sec
+        clock_msg.clock.nanosec = sim_time_nsec
+        self.clock_pub.publish(clock_msg)
+
+        # Use simulation time for all timestamps
         current_time = self.get_clock().now()
 
         # Publish joint states
@@ -154,9 +169,11 @@ class MuJoCoSimulator(Node):
         imu_msg.header.stamp = current_time.to_msg()
         imu_msg.header.frame_id = 'imu_link'
 
-        # Find IMU sensor
-        accel_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SENSOR, 'imu_accel')
-        gyro_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SENSOR, 'imu_gyro')
+        # Find IMU sensors (using torso sensors as primary)
+        accel_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SENSOR, 'imu-torso-linear-acceleration')
+        gyro_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SENSOR, 'imu-torso-angular-velocity')
+        torso_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'torso')
+        imu_site_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'imu_in_torso')
 
         if accel_id >= 0:
             accel_addr = self.model.sensor_adr[accel_id]
@@ -170,7 +187,50 @@ class MuJoCoSimulator(Node):
             imu_msg.angular_velocity.y = float(self.data.sensordata[gyro_addr + 1])
             imu_msg.angular_velocity.z = float(self.data.sensordata[gyro_addr + 2])
 
+        # Provide orientation from the IMU site (closest to actual sensor frame)
+        if imu_site_id >= 0:
+            # Site rotation matrix (row-major 3x3)
+            r = self.data.xmat[imu_site_id].reshape((3, 3))
+            imu_msg.orientation.x, imu_msg.orientation.y, imu_msg.orientation.z, imu_msg.orientation.w = self.rotmat_to_quat(r)
+        elif torso_id >= 0:
+            # Fallback to torso orientation
+            quat = self.data.xquat[torso_id]  # w, x, y, z
+            imu_msg.orientation.w = float(quat[0])
+            imu_msg.orientation.x = float(quat[1])
+            imu_msg.orientation.y = float(quat[2])
+            imu_msg.orientation.z = float(quat[3])
+
         self.imu_pub.publish(imu_msg)
+
+    @staticmethod
+    def rotmat_to_quat(r):
+        """Convert 3x3 rotation matrix to quaternion (x, y, z, w)."""
+        tr = r[0, 0] + r[1, 1] + r[2, 2]
+        if tr > 0:
+            S = np.sqrt(tr + 1.0) * 2
+            qw = 0.25 * S
+            qx = (r[2, 1] - r[1, 2]) / S
+            qy = (r[0, 2] - r[2, 0]) / S
+            qz = (r[1, 0] - r[0, 1]) / S
+        elif (r[0, 0] > r[1, 1]) and (r[0, 0] > r[2, 2]):
+            S = np.sqrt(1.0 + r[0, 0] - r[1, 1] - r[2, 2]) * 2
+            qw = (r[2, 1] - r[1, 2]) / S
+            qx = 0.25 * S
+            qy = (r[0, 1] + r[1, 0]) / S
+            qz = (r[0, 2] + r[2, 0]) / S
+        elif r[1, 1] > r[2, 2]:
+            S = np.sqrt(1.0 + r[1, 1] - r[0, 0] - r[2, 2]) * 2
+            qw = (r[0, 2] - r[2, 0]) / S
+            qx = (r[0, 1] + r[1, 0]) / S
+            qy = 0.25 * S
+            qz = (r[1, 2] + r[2, 1]) / S
+        else:
+            S = np.sqrt(1.0 + r[2, 2] - r[0, 0] - r[1, 1]) * 2
+            qw = (r[1, 0] - r[0, 1]) / S
+            qx = (r[0, 2] + r[2, 0]) / S
+            qy = (r[1, 2] + r[2, 1]) / S
+            qz = 0.25 * S
+        return float(qx), float(qy), float(qz), float(qw)
 
     def publish_foot_forces(self, current_time):
         """Publish foot force/torque sensor data."""
@@ -268,12 +328,17 @@ class MuJoCoSimulator(Node):
         self.get_logger().info('Starting MuJoCo viewer...')
 
         with mujoco.viewer.launch_passive(self.model, self.data) as viewer:
-            start_time = time.time()
             while viewer.is_running() and rclpy.ok():
                 step_start = time.time()
 
                 # Step simulation
                 self.step_simulation()
+                self.step_counter += 1
+
+                # Publish state every N steps (deterministic)
+                if self.step_counter >= self.publish_every_n_steps:
+                    self.publish_state()
+                    self.step_counter = 0
 
                 # Sync viewer
                 viewer.sync()
@@ -295,6 +360,12 @@ class MuJoCoSimulator(Node):
 
             # Step simulation
             self.step_simulation()
+            self.step_counter += 1
+
+            # Publish state every N steps (deterministic)
+            if self.step_counter >= self.publish_every_n_steps:
+                self.publish_state()
+                self.step_counter = 0
 
             # Maintain realtime
             time_until_next_step = self.dt * self.realtime_factor - (time.time() - step_start)

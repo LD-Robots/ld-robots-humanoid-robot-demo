@@ -57,26 +57,15 @@ Visualization Manager:
         Value: /imu/data
       Value: false
 
-    - Class: rviz_default_plugins/Marker
+    - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: CoM Marker
+      Name: Balance Markers
       Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /balance/com_marker
-      Value: true
-
-    - Class: rviz_default_plugins/Marker
-      Enabled: true
-      Name: ZMP Marker
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /balance/zmp_marker
+        Value: /balance_markers
       Value: true
 
     - Class: rviz_default_plugins/Marker

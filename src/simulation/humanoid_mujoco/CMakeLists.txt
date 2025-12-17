@@ -59,6 +59,7 @@ install(TARGETS
 # Install Python scripts
 install(PROGRAMS
   scripts/mujoco_simulator.py
+  scripts/mujoco_controller.py
   scripts/mujoco_visualizer.py
   scripts/urdf_to_mjcf.py
   DESTINATION lib/${PROJECT_NAME}

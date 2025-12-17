@@ -1,6 +1,15 @@
 <mujoco model="g1_29dof_lock_waist">
   <compiler angle="radian" meshdir="../meshes"/>
 
+  <option timestep="0.002" gravity="0 0 -9.81" iterations="50" solver="Newton" tolerance="1e-10"/>
+
+  <default>
+    <joint damping="0.5" armature="0.01"/>
+    <position kp="100" kv="10" forcerange="-200 200"/>
+    <geom friction="0.5 0.005 0.0001" condim="4"/>
+    <!-- Friction 0.5 = parquet/wood floor (was 1.0 = rubber on concrete) -->
+  </default>
+
   <asset>
     <mesh name="pelvis" file="pelvis.STL"/>
     <mesh name="pelvis_contour_link" file="pelvis_contour_link.STL"/>
@@ -237,33 +246,33 @@
   </worldbody>
 
   <actuator>
-    <motor name="left_hip_pitch_joint" joint="left_hip_pitch_joint"/>
-    <motor name="left_hip_roll_joint" joint="left_hip_roll_joint"/>
-    <motor name="left_hip_yaw_joint" joint="left_hip_yaw_joint"/>
-    <motor name="left_knee_joint" joint="left_knee_joint"/>
-    <motor name="left_ankle_pitch_joint" joint="left_ankle_pitch_joint"/>
-    <motor name="left_ankle_roll_joint" joint="left_ankle_roll_joint"/>
-    <motor name="right_hip_pitch_joint" joint="right_hip_pitch_joint"/>
-    <motor name="right_hip_roll_joint" joint="right_hip_roll_joint"/>
-    <motor name="right_hip_yaw_joint" joint="right_hip_yaw_joint"/>
-    <motor name="right_knee_joint" joint="right_knee_joint"/>
-    <motor name="right_ankle_pitch_joint" joint="right_ankle_pitch_joint"/>
-    <motor name="right_ankle_roll_joint" joint="right_ankle_roll_joint"/>
-    <motor name="waist_yaw_joint" joint="waist_yaw_joint"/>
-    <motor name="left_shoulder_pitch_joint" joint="left_shoulder_pitch_joint"/>
-    <motor name="left_shoulder_roll_joint" joint="left_shoulder_roll_joint"/>
-    <motor name="left_shoulder_yaw_joint" joint="left_shoulder_yaw_joint"/>
-    <motor name="left_elbow_joint" joint="left_elbow_joint"/>
-    <motor name="left_wrist_roll_joint" joint="left_wrist_roll_joint"/>
-    <motor name="left_wrist_pitch_joint" joint="left_wrist_pitch_joint"/>
-    <motor name="left_wrist_yaw_joint" joint="left_wrist_yaw_joint"/>
-    <motor name="right_shoulder_pitch_joint" joint="right_shoulder_pitch_joint"/>
-    <motor name="right_shoulder_roll_joint" joint="right_shoulder_roll_joint"/>
-    <motor name="right_shoulder_yaw_joint" joint="right_shoulder_yaw_joint"/>
-    <motor name="right_elbow_joint" joint="right_elbow_joint"/>
-    <motor name="right_wrist_roll_joint" joint="right_wrist_roll_joint"/>
-    <motor name="right_wrist_pitch_joint" joint="right_wrist_pitch_joint"/>
-    <motor name="right_wrist_yaw_joint" joint="right_wrist_yaw_joint"/>
+    <position name="left_hip_pitch_joint" joint="left_hip_pitch_joint"/>
+    <position name="left_hip_roll_joint" joint="left_hip_roll_joint"/>
+    <position name="left_hip_yaw_joint" joint="left_hip_yaw_joint"/>
+    <position name="left_knee_joint" joint="left_knee_joint"/>
+    <position name="left_ankle_pitch_joint" joint="left_ankle_pitch_joint"/>
+    <position name="left_ankle_roll_joint" joint="left_ankle_roll_joint"/>
+    <position name="right_hip_pitch_joint" joint="right_hip_pitch_joint"/>
+    <position name="right_hip_roll_joint" joint="right_hip_roll_joint"/>
+    <position name="right_hip_yaw_joint" joint="right_hip_yaw_joint"/>
+    <position name="right_knee_joint" joint="right_knee_joint"/>
+    <position name="right_ankle_pitch_joint" joint="right_ankle_pitch_joint"/>
+    <position name="right_ankle_roll_joint" joint="right_ankle_roll_joint"/>
+    <position name="waist_yaw_joint" joint="waist_yaw_joint"/>
+    <position name="left_shoulder_pitch_joint" joint="left_shoulder_pitch_joint"/>
+    <position name="left_shoulder_roll_joint" joint="left_shoulder_roll_joint"/>
+    <position name="left_shoulder_yaw_joint" joint="left_shoulder_yaw_joint"/>
+    <position name="left_elbow_joint" joint="left_elbow_joint"/>
+    <position name="left_wrist_roll_joint" joint="left_wrist_roll_joint"/>
+    <position name="left_wrist_pitch_joint" joint="left_wrist_pitch_joint"/>
+    <position name="left_wrist_yaw_joint" joint="left_wrist_yaw_joint"/>
+    <position name="right_shoulder_pitch_joint" joint="right_shoulder_pitch_joint"/>
+    <position name="right_shoulder_roll_joint" joint="right_shoulder_roll_joint"/>
+    <position name="right_shoulder_yaw_joint" joint="right_shoulder_yaw_joint"/>
+    <position name="right_elbow_joint" joint="right_elbow_joint"/>
+    <position name="right_wrist_roll_joint" joint="right_wrist_roll_joint"/>
+    <position name="right_wrist_pitch_joint" joint="right_wrist_pitch_joint"/>
+    <position name="right_wrist_yaw_joint" joint="right_wrist_yaw_joint"/>
   </actuator>
 
   <sensor>
@@ -273,6 +282,7 @@
     <accelerometer name="imu-pelvis-linear-acceleration" site="imu_in_pelvis" noise="1e-2" cutoff="157"/>
   </sensor>
 
+  <!-- Keyframe removed - was causing issues with Pinocchio parser -->
 
   <!-- setup scene -->
   <statistic center="1.0 0.7 1.0" extent="0.8"/>
