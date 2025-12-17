@@ -50,6 +50,18 @@ def generate_launch_description():
         description='Simulation speed (1.0 = realtime)'
     )
 
+    torso_body_name_arg = DeclareLaunchArgument(
+        'torso_body_name',
+        default_value='torso',
+        description='Body name used for torso TF and torso pose'
+    )
+
+    pelvis_body_name_arg = DeclareLaunchArgument(
+        'pelvis_body_name',
+        default_value='pelvis',
+        description='Body name used for pelvis TF'
+    )
+
     # MuJoCo Simulator Node
     mujoco_simulator = Node(
         package='humanoid_mujoco',
@@ -61,6 +73,8 @@ def generate_launch_description():
             'use_viewer': LaunchConfiguration('use_viewer'),
             'publish_rate': LaunchConfiguration('publish_rate'),
             'realtime_factor': LaunchConfiguration('realtime_factor'),
+            'torso_body_name': LaunchConfiguration('torso_body_name'),
+            'pelvis_body_name': LaunchConfiguration('pelvis_body_name'),
             'use_sim_time': True
         }]
     )
@@ -88,6 +102,8 @@ def generate_launch_description():
         model_path_arg,
         publish_rate_arg,
         realtime_factor_arg,
+        torso_body_name_arg,
+        pelvis_body_name_arg,
         mujoco_simulator,
         rviz,
     ])

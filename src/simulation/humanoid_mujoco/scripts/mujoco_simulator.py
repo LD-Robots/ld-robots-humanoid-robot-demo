@@ -35,11 +35,15 @@ class MuJoCoSimulator(Node):
         self.declare_parameter('use_viewer', True)
         self.declare_parameter('publish_rate', 100.0)  # Hz
         self.declare_parameter('realtime_factor', 1.0)
+        self.declare_parameter('torso_body_name', '')
+        self.declare_parameter('pelvis_body_name', '')
 
         self.model_path = self.get_parameter('model_path').get_parameter_value().string_value
         self.use_viewer = self.get_parameter('use_viewer').get_parameter_value().bool_value
         self.publish_rate = self.get_parameter('publish_rate').get_parameter_value().double_value
         self.realtime_factor = self.get_parameter('realtime_factor').get_parameter_value().double_value
+        self.torso_body_name = self.get_parameter('torso_body_name').get_parameter_value().string_value
+        self.pelvis_body_name = self.get_parameter('pelvis_body_name').get_parameter_value().string_value
 
         if not MUJOCO_AVAILABLE:
             self.get_logger().error('MuJoCo is not installed!')
@@ -56,6 +60,17 @@ class MuJoCoSimulator(Node):
         except Exception as e:
             self.get_logger().error(f'Failed to load model: {e}')
             return
+
+        self.torso_body_id, self.torso_body_name = self._resolve_body(
+            self.torso_body_name,
+            ['torso', 'torso_link', 'pelvis', 'base_link'],
+            'torso'
+        )
+        self.pelvis_body_id, self.pelvis_body_name = self._resolve_body(
+            self.pelvis_body_name,
+            ['pelvis', 'base_link', 'torso', 'torso_link'],
+            'pelvis'
+        )
 
         # ROS 2 Publishers
         self.clock_pub = self.create_publisher(Clock, 'clock', 10)
@@ -95,6 +110,21 @@ class MuJoCoSimulator(Node):
         self.get_logger().info(f'Physics: {physics_rate} Hz, Publishing every {self.publish_every_n_steps} steps')
 
         self.get_logger().info('MuJoCo Simulator initialized')
+
+    def _resolve_body(self, preferred_name, fallback_names, label):
+        candidates = []
+        if preferred_name:
+            candidates.append(preferred_name)
+        candidates.extend(fallback_names)
+
+        for name in candidates:
+            torso_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, name)
+            if torso_id >= 0:
+                self.get_logger().info(f'Using {label} body for TF/pose: {name}')
+                return torso_id, name
+
+        self.get_logger().warn(f'No {label} body found for pose/TF publishing')
+        return None, ''
 
     def joint_command_callback(self, msg):
         """Receive joint commands from ROS 2."""
@@ -172,7 +202,6 @@ class MuJoCoSimulator(Node):
         # Find IMU sensors (using torso sensors as primary)
         accel_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SENSOR, 'imu-torso-linear-acceleration')
         gyro_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SENSOR, 'imu-torso-angular-velocity')
-        torso_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'torso')
         imu_site_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'imu_in_torso')
 
         if accel_id >= 0:
@@ -192,9 +221,9 @@ class MuJoCoSimulator(Node):
             # Site rotation matrix (row-major 3x3)
             r = self.data.xmat[imu_site_id].reshape((3, 3))
             imu_msg.orientation.x, imu_msg.orientation.y, imu_msg.orientation.z, imu_msg.orientation.w = self.rotmat_to_quat(r)
-        elif torso_id >= 0:
+        elif self.torso_body_id is not None:
             # Fallback to torso orientation
-            quat = self.data.xquat[torso_id]  # w, x, y, z
+            quat = self.data.xquat[self.torso_body_id]  # w, x, y, z
             imu_msg.orientation.w = float(quat[0])
             imu_msg.orientation.x = float(quat[1])
             imu_msg.orientation.y = float(quat[2])
@@ -280,20 +309,18 @@ class MuJoCoSimulator(Node):
 
     def publish_torso_pose(self, current_time):
         """Publish torso pose."""
-        torso_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'torso')
-
-        if torso_id >= 0:
+        if self.torso_body_id is not None:
             pose_msg = PoseStamped()
             pose_msg.header.stamp = current_time.to_msg()
             pose_msg.header.frame_id = 'world'
 
-            # Get body position and orientation
-            pose_msg.pose.position.x = float(self.data.xpos[torso_id][0])
-            pose_msg.pose.position.y = float(self.data.xpos[torso_id][1])
-            pose_msg.pose.position.z = float(self.data.xpos[torso_id][2])
+            # Use torso center of mass for a centered TF/pose.
+            pose_msg.pose.position.x = float(self.data.xipos[self.torso_body_id][0])
+            pose_msg.pose.position.y = float(self.data.xipos[self.torso_body_id][1])
+            pose_msg.pose.position.z = float(self.data.xipos[self.torso_body_id][2])
 
             # Quaternion (w, x, y, z in MuJoCo)
-            quat = self.data.xquat[torso_id]
+            quat = self.data.xquat[self.torso_body_id]
             pose_msg.pose.orientation.w = float(quat[0])
             pose_msg.pose.orientation.x = float(quat[1])
             pose_msg.pose.orientation.y = float(quat[2])
@@ -303,25 +330,39 @@ class MuJoCoSimulator(Node):
 
     def publish_tf(self, current_time):
         """Publish TF transforms."""
-        # Publish base_link to world transform
-        t = TransformStamped()
-        t.header.stamp = current_time.to_msg()
-        t.header.frame_id = 'world'
-        t.child_frame_id = 'base_link'
+        if self.pelvis_body_id is not None:
+            pelvis_tf = TransformStamped()
+            pelvis_tf.header.stamp = current_time.to_msg()
+            pelvis_tf.header.frame_id = 'world'
+            pelvis_tf.child_frame_id = 'pelvis'
+            pelvis_tf.transform.translation.x = float(self.data.xpos[self.pelvis_body_id][0])
+            pelvis_tf.transform.translation.y = float(self.data.xpos[self.pelvis_body_id][1])
+            pelvis_tf.transform.translation.z = float(self.data.xpos[self.pelvis_body_id][2])
 
-        torso_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'torso')
-        if torso_id >= 0:
-            t.transform.translation.x = float(self.data.xpos[torso_id][0])
-            t.transform.translation.y = float(self.data.xpos[torso_id][1])
-            t.transform.translation.z = float(self.data.xpos[torso_id][2])
+            pelvis_quat = self.data.xquat[self.pelvis_body_id]
+            pelvis_tf.transform.rotation.w = float(pelvis_quat[0])
+            pelvis_tf.transform.rotation.x = float(pelvis_quat[1])
+            pelvis_tf.transform.rotation.y = float(pelvis_quat[2])
+            pelvis_tf.transform.rotation.z = float(pelvis_quat[3])
 
-            quat = self.data.xquat[torso_id]
-            t.transform.rotation.w = float(quat[0])
-            t.transform.rotation.x = float(quat[1])
-            t.transform.rotation.y = float(quat[2])
-            t.transform.rotation.z = float(quat[3])
+            self.tf_broadcaster.sendTransform(pelvis_tf)
 
-            self.tf_broadcaster.sendTransform(t)
+        if self.torso_body_id is not None:
+            torso_tf = TransformStamped()
+            torso_tf.header.stamp = current_time.to_msg()
+            torso_tf.header.frame_id = 'world'
+            torso_tf.child_frame_id = 'torso'
+            torso_tf.transform.translation.x = float(self.data.xipos[self.torso_body_id][0])
+            torso_tf.transform.translation.y = float(self.data.xipos[self.torso_body_id][1])
+            torso_tf.transform.translation.z = float(self.data.xipos[self.torso_body_id][2])
+
+            torso_quat = self.data.xquat[self.torso_body_id]
+            torso_tf.transform.rotation.w = float(torso_quat[0])
+            torso_tf.transform.rotation.x = float(torso_quat[1])
+            torso_tf.transform.rotation.y = float(torso_quat[2])
+            torso_tf.transform.rotation.z = float(torso_quat[3])
+
+            self.tf_broadcaster.sendTransform(torso_tf)
 
     def run_with_viewer(self):
         """Run simulation with MuJoCo viewer."""
