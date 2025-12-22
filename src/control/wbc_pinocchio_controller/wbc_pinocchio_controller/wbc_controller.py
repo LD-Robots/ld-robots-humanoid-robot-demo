@@ -6,7 +6,7 @@ Commands joint positions over /joint_commands (Float64MultiArray).
 """
 
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 import xml.etree.ElementTree as ET
 
 import numpy as np
@@ -18,6 +18,7 @@ from geometry_msgs.msg import PoseStamped
 from .config_loader import load_wbc_config
 from .balance_markers import BalanceMarkersPublisher
 from .joint_mapping_loader import load_initial_pose
+from .balance_controller import BalanceController
 from .state_estimator import RobotState, StateEstimator
 
 
@@ -67,17 +68,9 @@ class WbcPinocchioController(Node):
         self.imu_msg = None
         self.base_pose_msg = None
         self.filtered_commands = {}
-        self.ankle_pitch_filtered = 0.0
-        self.ankle_roll_filtered = 0.0
-        self.hip_pitch_filtered = 0.0
-        self.hip_roll_filtered = 0.0
         self.hold_active = False
         self.hold_targets = {}
         self.stable_since = None
-        self.last_com_error_x = 0.0
-        self.last_com_error_y = 0.0
-        self.last_com_vel_x = 0.0
-        self.last_com_vel_y = 0.0
         self.phase_time_offset = 0.0
         self.last_control_time = None
         self.phase_hold_accum = 0.0
@@ -110,6 +103,23 @@ class WbcPinocchioController(Node):
         self.timer_started = False
         if self.cfg.use_crocoddyl:
             self.get_logger().warn('Crocoddyl integration not implemented yet; running quasi-static WBC only.')
+
+        self.balance_controller = BalanceController(
+            com_in_world=self.cfg.com_in_world,
+            com_deadzone=self.cfg.com_deadzone,
+            foot_length=self.cfg.foot_length,
+            foot_width=self.cfg.foot_width,
+            prediction_time=self.cfg.prediction_time,
+            balance_kp_pitch=self.cfg.balance_kp_pitch,
+            balance_kd_pitch=self.cfg.balance_kd_pitch,
+            balance_kp_roll=self.cfg.balance_kp_roll,
+            balance_kd_roll=self.cfg.balance_kd_roll,
+            ankle_pitch_limit=self.cfg.ankle_pitch_limit,
+            ankle_roll_limit=self.cfg.ankle_roll_limit,
+            hip_pitch_limit=self.cfg.hip_pitch_limit,
+            hip_roll_limit=self.cfg.hip_roll_limit,
+            filter_alpha=self.cfg.filter_alpha,
+        )
 
     def _load_actuator_order(self, model_xml_path: str) -> List[str]:
         if not model_xml_path:
@@ -216,80 +226,17 @@ class WbcPinocchioController(Node):
             targets['left_hip_roll_joint'] = targets.get('left_hip_roll_joint', 0.0) + hip_roll_offset
             targets['right_hip_roll_joint'] = targets.get('right_hip_roll_joint', 0.0) - hip_roll_offset
 
-        # Balance corrections (CoM-based, similar to pinocchio_balance_control)
-        com_error_x = 0.0
-        com_error_y = 0.0
-        com_vel_x = 0.0
-        com_vel_y = 0.0
-        support_center_x = 0.0
-        support_center_y = 0.0
-        if self.cfg.com_in_world and self.base_pose_msg is not None:
-            support_center_x = float(self.base_pose_msg.pose.position.x)
-            support_center_y = float(self.base_pose_msg.pose.position.y)
-        if state.com is not None and state.com_vel is not None:
-            com_error_x = state.com[0] - support_center_x
-            com_error_y = state.com[1] - support_center_y
-            com_vel_x = state.com_vel[0]
-            com_vel_y = state.com_vel[1]
+        corrections = self.balance_controller.compute(state, self.base_pose_msg)
 
-        self.last_com_error_x = com_error_x
-        self.last_com_error_y = com_error_y
-        self.last_com_vel_x = com_vel_x
-        self.last_com_vel_y = com_vel_y
+        targets['left_hip_pitch_joint'] = targets.get('left_hip_pitch_joint', 0.0) + corrections.hip_pitch
+        targets['right_hip_pitch_joint'] = targets.get('right_hip_pitch_joint', 0.0) + corrections.hip_pitch
+        targets['left_hip_roll_joint'] = targets.get('left_hip_roll_joint', 0.0) + corrections.hip_roll
+        targets['right_hip_roll_joint'] = targets.get('right_hip_roll_joint', 0.0) - corrections.hip_roll
 
-        if abs(com_error_x) < self.cfg.com_deadzone:
-            com_error_x = 0.0
-        if abs(com_error_y) < self.cfg.com_deadzone:
-            com_error_y = 0.0
-
-        support_limit_x = max(self.cfg.foot_length * 0.5, 1e-3)
-        support_limit_y = max(self.cfg.foot_width * 0.5, 1e-3)
-        com_margin_x = abs(com_error_x) / support_limit_x
-        com_margin_y = abs(com_error_y) / support_limit_y
-
-        com_predicted_x = com_error_x + com_vel_x * self.cfg.prediction_time
-        com_predicted_y = com_error_y + com_vel_y * self.cfg.prediction_time
-        com_error_blend_x = 0.7 * com_error_x + 0.3 * com_predicted_x
-        com_error_blend_y = 0.7 * com_error_y + 0.3 * com_predicted_y
-
-        correction_x = -(self.cfg.balance_kp_pitch * com_error_blend_x + self.cfg.balance_kd_pitch * com_vel_x)
-        correction_y = -(self.cfg.balance_kp_roll * com_error_blend_y + self.cfg.balance_kd_roll * com_vel_y)
-
-        com_tilt_mag = float(np.sqrt(com_margin_x**2 + com_margin_y**2))
-        hip_ratio = float(np.tanh(com_tilt_mag / 0.3))
-        ankle_ratio = 1.0 - 0.5 * hip_ratio
-
-        ankle_pitch_raw = np.clip(-ankle_ratio * correction_x, -self.cfg.ankle_pitch_limit, self.cfg.ankle_pitch_limit)
-        ankle_roll_raw = np.clip(-ankle_ratio * correction_y, -self.cfg.ankle_roll_limit, self.cfg.ankle_roll_limit)
-        hip_pitch_raw = np.clip(-hip_ratio * correction_x, -self.cfg.hip_pitch_limit, self.cfg.hip_pitch_limit)
-        hip_roll_raw = np.clip(-hip_ratio * correction_y, -self.cfg.hip_roll_limit, self.cfg.hip_roll_limit)
-
-        self.ankle_pitch_filtered = (
-            self.cfg.filter_alpha * ankle_pitch_raw +
-            (1.0 - self.cfg.filter_alpha) * self.ankle_pitch_filtered
-        )
-        self.ankle_roll_filtered = (
-            self.cfg.filter_alpha * ankle_roll_raw +
-            (1.0 - self.cfg.filter_alpha) * self.ankle_roll_filtered
-        )
-        self.hip_pitch_filtered = (
-            self.cfg.filter_alpha * hip_pitch_raw +
-            (1.0 - self.cfg.filter_alpha) * self.hip_pitch_filtered
-        )
-        self.hip_roll_filtered = (
-            self.cfg.filter_alpha * hip_roll_raw +
-            (1.0 - self.cfg.filter_alpha) * self.hip_roll_filtered
-        )
-
-        targets['left_hip_pitch_joint'] = targets.get('left_hip_pitch_joint', 0.0) + self.hip_pitch_filtered
-        targets['right_hip_pitch_joint'] = targets.get('right_hip_pitch_joint', 0.0) + self.hip_pitch_filtered
-        targets['left_hip_roll_joint'] = targets.get('left_hip_roll_joint', 0.0) + self.hip_roll_filtered
-        targets['right_hip_roll_joint'] = targets.get('right_hip_roll_joint', 0.0) - self.hip_roll_filtered
-
-        targets['left_ankle_pitch_joint'] = targets.get('left_ankle_pitch_joint', 0.0) + self.ankle_pitch_filtered
-        targets['right_ankle_pitch_joint'] = targets.get('right_ankle_pitch_joint', 0.0) + self.ankle_pitch_filtered
-        targets['left_ankle_roll_joint'] = self.ankle_roll_filtered
-        targets['right_ankle_roll_joint'] = -self.ankle_roll_filtered
+        targets['left_ankle_pitch_joint'] = targets.get('left_ankle_pitch_joint', 0.0) + corrections.ankle_pitch
+        targets['right_ankle_pitch_joint'] = targets.get('right_ankle_pitch_joint', 0.0) + corrections.ankle_pitch
+        targets['left_ankle_roll_joint'] = corrections.ankle_roll
+        targets['right_ankle_roll_joint'] = -corrections.ankle_roll
 
         return targets
 
@@ -354,8 +301,14 @@ class WbcPinocchioController(Node):
 
         targets = self._build_targets(state, phase, progress)
         if self.cfg.hold_enabled and self.cfg.balance_active and not self.cfg.walking_enabled:
-            error_mag = float(np.hypot(self.last_com_error_x, self.last_com_error_y))
-            vel_mag = float(np.hypot(self.last_com_vel_x, self.last_com_vel_y))
+            error_mag = float(np.hypot(
+                self.balance_controller.last_com_error_x,
+                self.balance_controller.last_com_error_y,
+            ))
+            vel_mag = float(np.hypot(
+                self.balance_controller.last_com_vel_x,
+                self.balance_controller.last_com_vel_y,
+            ))
             stable = (
                 error_mag <= self.cfg.hold_com_threshold and
                 vel_mag <= self.cfg.hold_vel_threshold
@@ -410,8 +363,14 @@ class WbcPinocchioController(Node):
             if self.last_log_time is None or (now - self.last_log_time) >= self.cfg.log_period:
                 self.last_log_time = now
                 com_y = state.com[1] if state.com is not None else 0.0
-                err_mag = float(np.hypot(self.last_com_error_x, self.last_com_error_y))
-                vel_mag = float(np.hypot(self.last_com_vel_x, self.last_com_vel_y))
+                err_mag = float(np.hypot(
+                    self.balance_controller.last_com_error_x,
+                    self.balance_controller.last_com_error_y,
+                ))
+                vel_mag = float(np.hypot(
+                    self.balance_controller.last_com_vel_x,
+                    self.balance_controller.last_com_vel_y,
+                ))
                 tracking_err = self._tracking_error(self.filtered_commands, state)
                 self.get_logger().info(
                     f'Phase={phase.name} progress={progress:.2f} com_y={com_y:.3f} '
