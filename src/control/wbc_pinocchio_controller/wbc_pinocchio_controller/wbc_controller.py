@@ -5,7 +5,6 @@ Uses Pinocchio for CoM estimation and optional Crocoddyl hooks.
 Commands joint positions over /joint_commands (Float64MultiArray).
 """
 
-from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
 import xml.etree.ElementTree as ET
@@ -19,12 +18,8 @@ from geometry_msgs.msg import PoseStamped
 from .config_loader import load_wbc_config
 from .balance_markers import BalanceMarkersPublisher
 from .joint_mapping_loader import load_initial_pose
+from .state_estimator import RobotState, StateEstimator
 
-try:
-    import pinocchio as pin
-    PINOCCHIO_AVAILABLE = True
-except Exception:
-    PINOCCHIO_AVAILABLE = False
 
 
 class Phase(Enum):
@@ -35,14 +30,6 @@ class Phase(Enum):
     SHIFT_TO_RIGHT = 4
     LEFT_SWING = 5
     LEFT_LAND = 6
-
-
-@dataclass
-class RobotState:
-    joint_positions: Dict[str, float]
-    joint_velocities: Dict[str, float]
-    com: Optional[np.ndarray]
-    com_vel: Optional[np.ndarray]
 
 
 class WbcPinocchioController(Node):
@@ -70,33 +57,11 @@ class WbcPinocchioController(Node):
                 f"Initial pose empty. YAML={self.cfg.initial_pose_yaml} key={self.cfg.initial_pose_key}"
             )
 
-        self.pin_model = None
-        self.pin_data = None
-        self.pin_joint_map = {}
-        self.has_floating_base = False
-        if PINOCCHIO_AVAILABLE and self.cfg.urdf_path:
-            try:
-                if self.cfg.urdf_path.endswith('.xml'):
-                    self.pin_model = pin.buildModelFromMJCF(self.cfg.urdf_path)
-                else:
-                    self.pin_model = pin.buildModelFromUrdf(self.cfg.urdf_path)
-                self.pin_data = self.pin_model.createData()
-                if len(self.pin_model.joints) > 1:
-                    self.has_floating_base = self.pin_model.joints[1].nq == 7
-                self.get_logger().info(f'Floating base: {self.has_floating_base}')
-                for name in self.pin_model.names:
-                    if name == 'universe':
-                        continue
-                    joint_id = self.pin_model.getJointId(name)
-                    if joint_id >= 0:
-                        idx = self.pin_model.joints[joint_id].idx_q
-                        self.pin_joint_map[name] = idx
-                self.get_logger().info(f'Pinocchio model loaded: {self.pin_model.nq} q')
-                self.get_logger().info(
-                    f'CoM frame: {"world" if self.cfg.com_in_world else "model"}'
-                )
-            except Exception as exc:
-                self.get_logger().warn(f'Failed to load Pinocchio model: {exc}')
+        self.state_estimator = StateEstimator(
+            self,
+            urdf_path=self.cfg.urdf_path,
+            com_in_world=self.cfg.com_in_world,
+        )
 
         self.joint_state = None
         self.imu_msg = None
@@ -172,71 +137,6 @@ class WbcPinocchioController(Node):
 
     def _base_pose_callback(self, msg: PoseStamped):
         self.base_pose_msg = msg
-
-    def _build_state(self) -> Optional[RobotState]:
-        if self.joint_state is None:
-            return None
-
-        positions = {}
-        velocities = {}
-        for idx, name in enumerate(self.joint_state.name):
-            positions[name] = self.joint_state.position[idx]
-            if idx < len(self.joint_state.velocity):
-                velocities[name] = self.joint_state.velocity[idx]
-
-        com = None
-        com_vel = None
-        if self.pin_model is not None and self.pin_data is not None:
-            q = np.zeros(self.pin_model.nq)
-            dq = np.zeros(self.pin_model.nv)
-            for joint_name, q_idx in self.pin_joint_map.items():
-
-                if joint_name == 'floating_base_joint' and self.cfg.com_in_world:
-                    continue
-
-                if joint_name in positions:
-                    q[q_idx] = positions[joint_name]
-                if joint_name in velocities:
-                    dq[q_idx] = velocities[joint_name]
-            if self.has_floating_base and self.cfg.com_in_world and self.base_pose_msg is not None:
-                pose = self.base_pose_msg.pose
-                q[0:3] = [pose.position.x, pose.position.y, pose.position.z]
-
-                q[3:7] = [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w]
-
-                quat = np.array(
-                    [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w],
-                    dtype=float
-                )
-                norm = np.linalg.norm(quat)
-                if norm > 1e-9:
-                    quat = quat / norm
-                q[3:7] = quat
-            try:
-                pin.forwardKinematics(self.pin_model, self.pin_data, q, dq)
-                pin.centerOfMass(self.pin_model, self.pin_data, q, dq)
-                com = self.pin_data.com[0].copy()
-                com_vel = self.pin_data.vcom[0].copy()
-            except Exception as exc:
-                self.get_logger().warn(f'Pinocchio computation failed: {exc}', throttle_duration_sec=5.0)
-
-        return RobotState(positions, velocities, com, com_vel)
-
-    def _quat_to_rpy(self, quat: Imu) -> Tuple[float, float, float]:
-        q = quat.orientation
-        w, x, y, z = q.w, q.x, q.y, q.z
-        sinr_cosp = 2.0 * (w * x + y * z)
-        cosr_cosp = 1.0 - 2.0 * (x * x + y * y)
-        roll = np.arctan2(sinr_cosp, cosr_cosp)
-        sinp = 2.0 * (w * y - z * x)
-        if abs(sinp) >= 1:
-            pitch = np.sign(sinp) * (np.pi / 2.0)
-        else:
-            pitch = np.arcsin(sinp)
-        siny_cosp = 2.0 * (w * z + x * y)
-        cosy_cosp = 1.0 - 2.0 * (y * y + z * z)
-        yaw = np.arctan2(siny_cosp, cosy_cosp)
-        return roll, pitch, yaw
 
     def _phase_progress(self, elapsed: float) -> Tuple[Phase, float]:
         if elapsed < self.cfg.stabilize_duration:
@@ -432,7 +332,7 @@ class WbcPinocchioController(Node):
         if not self.timer_started:
             return
 
-        state = self._build_state()
+        state = self.state_estimator.build_state(self.joint_state, self.base_pose_msg)
         if state is None:
             return
 
