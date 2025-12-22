@@ -5,8 +5,7 @@ Uses Pinocchio for CoM estimation and optional Crocoddyl hooks.
 Commands joint positions over /joint_commands (Float64MultiArray).
 """
 
-from enum import Enum
-from typing import Dict, List, Tuple
+from typing import Dict, List
 import xml.etree.ElementTree as ET
 
 import numpy as np
@@ -19,19 +18,8 @@ from .config_loader import load_wbc_config
 from .balance_markers import BalanceMarkersPublisher
 from .joint_mapping_loader import load_initial_pose
 from .balance_controller import BalanceController
+from .gait_phase import GaitPhaseGenerator, Phase
 from .state_estimator import RobotState, StateEstimator
-
-
-
-class Phase(Enum):
-    STABILIZE = 0
-    SHIFT_TO_LEFT = 1
-    RIGHT_SWING = 2
-    RIGHT_LAND = 3
-    SHIFT_TO_RIGHT = 4
-    LEFT_SWING = 5
-    LEFT_LAND = 6
-
 
 class WbcPinocchioController(Node):
     def __init__(self):
@@ -120,6 +108,10 @@ class WbcPinocchioController(Node):
             hip_roll_limit=self.cfg.hip_roll_limit,
             filter_alpha=self.cfg.filter_alpha,
         )
+        self.gait_phase = GaitPhaseGenerator(
+            stabilize_duration=self.cfg.stabilize_duration,
+            step_duration=self.cfg.step_duration,
+        )
 
     def _load_actuator_order(self, model_xml_path: str) -> List[str]:
         if not model_xml_path:
@@ -147,39 +139,6 @@ class WbcPinocchioController(Node):
 
     def _base_pose_callback(self, msg: PoseStamped):
         self.base_pose_msg = msg
-
-    def _phase_progress(self, elapsed: float) -> Tuple[Phase, float]:
-        if elapsed < self.cfg.stabilize_duration:
-            return Phase.STABILIZE, elapsed / max(self.cfg.stabilize_duration, 1e-6)
-
-        cycle_time = elapsed - self.cfg.stabilize_duration
-        phase_time = self.cfg.step_duration
-        if phase_time <= 0.0:
-            return Phase.STABILIZE, 0.0
-
-        cycle_pos = cycle_time % (phase_time * 2.0)
-        half = phase_time
-
-        if cycle_pos < half:
-            phase_elapsed = cycle_pos
-            phase = self._phase_from_cycle(phase_elapsed, left_support=True)
-            progress = phase_elapsed / half
-        else:
-            phase_elapsed = cycle_pos - half
-            phase = self._phase_from_cycle(phase_elapsed, left_support=False)
-            progress = phase_elapsed / half
-
-        return phase, progress
-
-    def _phase_from_cycle(self, t: float, left_support: bool) -> Phase:
-        shift = self.cfg.step_duration * 0.2
-        swing = self.cfg.step_duration * 0.5
-        land = self.cfg.step_duration * 0.3
-        if t < shift:
-            return Phase.SHIFT_TO_LEFT if left_support else Phase.SHIFT_TO_RIGHT
-        if t < shift + swing:
-            return Phase.RIGHT_SWING if left_support else Phase.LEFT_SWING
-        return Phase.RIGHT_LAND if left_support else Phase.LEFT_LAND
 
     def _build_targets(self, state: RobotState, phase: Phase, progress: float) -> Dict[str, float]:
         targets: Dict[str, float] = dict(self.base_pose)
@@ -293,7 +252,7 @@ class WbcPinocchioController(Node):
 
         elapsed = now - self.start_time - self.phase_time_offset
         if self.cfg.walking_enabled:
-            phase, progress = self._phase_progress(elapsed)
+            phase, progress = self.gait_phase.get_phase(elapsed)
         else:
             if not self.cfg.balance_active:
                 return
