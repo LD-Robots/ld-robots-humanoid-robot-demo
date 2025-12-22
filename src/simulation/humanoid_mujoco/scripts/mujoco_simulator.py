@@ -80,6 +80,7 @@ class MuJoCoSimulator(Node):
         self.left_foot_force_pub = self.create_publisher(WrenchStamped, 'left_foot/wrench', 10)
         self.right_foot_force_pub = self.create_publisher(WrenchStamped, 'right_foot/wrench', 10)
         self.torso_pose_pub = self.create_publisher(PoseStamped, 'torso/pose', 10)
+        self.pelvis_pose_pub = self.create_publisher(PoseStamped, 'pelvis/pose', 10)
 
         # ROS 2 Subscribers
         self.joint_cmd_sub = self.create_subscription(
@@ -187,8 +188,9 @@ class MuJoCoSimulator(Node):
         # Publish foot forces
         self.publish_foot_forces(current_time)
 
-        # Publish torso pose
+        # Publish torso/pelvis pose
         self.publish_torso_pose(current_time)
+        self.publish_pelvis_pose(current_time)
 
         # Publish TF
         self.publish_tf(current_time)
@@ -327,6 +329,25 @@ class MuJoCoSimulator(Node):
             pose_msg.pose.orientation.z = float(quat[3])
 
             self.torso_pose_pub.publish(pose_msg)
+
+    def publish_pelvis_pose(self, current_time):
+        """Publish pelvis pose."""
+        if self.pelvis_body_id is not None:
+            pose_msg = PoseStamped()
+            pose_msg.header.stamp = current_time.to_msg()
+            pose_msg.header.frame_id = 'world'
+
+            pose_msg.pose.position.x = float(self.data.xpos[self.pelvis_body_id][0])
+            pose_msg.pose.position.y = float(self.data.xpos[self.pelvis_body_id][1])
+            pose_msg.pose.position.z = float(self.data.xpos[self.pelvis_body_id][2])
+
+            quat = self.data.xquat[self.pelvis_body_id]
+            pose_msg.pose.orientation.w = float(quat[0])
+            pose_msg.pose.orientation.x = float(quat[1])
+            pose_msg.pose.orientation.y = float(quat[2])
+            pose_msg.pose.orientation.z = float(quat[3])
+
+            self.pelvis_pose_pub.publish(pose_msg)
 
     def publish_tf(self, current_time):
         """Publish TF transforms."""

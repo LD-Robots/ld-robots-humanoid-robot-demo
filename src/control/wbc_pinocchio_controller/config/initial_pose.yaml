@@ -1,0 +1,78 @@
+# Initial poses for WBC controller
+stable_stance:
+  joint_positions:
+    left_leg:
+      hip_pitch: -0.1
+      hip_roll: 0.06
+      hip_yaw: 0.0
+      knee: 0.08
+      ankle_pitch: -0.07
+      ankle_roll: 0.0
+
+    right_leg:
+      hip_pitch: -0.1
+      hip_roll: -0.06
+      hip_yaw: 0.0
+      knee: 0.08
+      ankle_pitch: -0.07
+      ankle_roll: 0.0
+
+    waist:
+      yaw: 0.0
+
+    left_arm:
+      shoulder_pitch: 0.0
+      shoulder_roll: -0.15
+      shoulder_yaw: 0.0
+      elbow: 0.8
+      wrist_roll: 0.0
+      wrist_pitch: 0.0
+      wrist_yaw: 0.0
+
+    right_arm:
+      shoulder_pitch: 0.0
+      shoulder_roll: 0.15
+      shoulder_yaw: 0.0
+      elbow: 0.8
+      wrist_roll: 0.0
+      wrist_pitch: 0.0
+      wrist_yaw: 0.0
+
+forward_lean:
+  joint_positions:
+    left_leg:
+      hip_pitch: -0.18
+      hip_roll: 0.0
+      hip_yaw: 0.0
+      knee: 0.20
+      ankle_pitch: 0.06
+      ankle_roll: 0.0
+
+    right_leg:
+      hip_pitch: -0.18
+      hip_roll: 0.0
+      hip_yaw: 0.0
+      knee: 0.20
+      ankle_pitch: 0.06
+      ankle_roll: 0.0
+
+    waist:
+      yaw: 0.0
+
+    left_arm:
+      shoulder_pitch: 0.0
+      shoulder_roll: -0.15
+      shoulder_yaw: 0.0
+      elbow: 0.7
+      wrist_roll: 0.0
+      wrist_pitch: 0.0
+      wrist_yaw: 0.0
+
+    right_arm:
+      shoulder_pitch: 0.0
+      shoulder_roll: 0.15
+      shoulder_yaw: 0.0
+      elbow: 0.7
+      wrist_roll: 0.0
+      wrist_pitch: 0.0
+      wrist_yaw: 0.0
