@@ -14,10 +14,10 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState, Imu
-from geometry_msgs.msg import PointStamped, PoseStamped
-from visualization_msgs.msg import Marker, MarkerArray
+from geometry_msgs.msg import PoseStamped
 
 from .config_loader import load_wbc_config
+from .balance_markers import BalanceMarkersPublisher
 from .joint_mapping_loader import load_initial_pose
 
 try:
@@ -136,9 +136,7 @@ class WbcPinocchioController(Node):
             10
         )
         self.target_pub = self.create_publisher(JointState, self.cfg.target_positions_topic, 10)
-        self.com_pub = self.create_publisher(PointStamped, 'com_position', 10)
-        self.zmp_pub = self.create_publisher(PointStamped, 'zmp_position', 10)
-        self.marker_pub = self.create_publisher(MarkerArray, 'balance_markers', 10)
+        self.balance_markers = BalanceMarkersPublisher(self, com_in_world=self.cfg.com_in_world)
 
         self.start_time = None
         self.phase = Phase.STABILIZE
@@ -240,16 +238,6 @@ class WbcPinocchioController(Node):
         yaw = np.arctan2(siny_cosp, cosy_cosp)
         return roll, pitch, yaw
 
-    def _quat_to_rot(self, quat) -> np.ndarray:
-        x, y, z, w = quat.x, quat.y, quat.z, quat.w
-        xx, yy, zz = x * x, y * y, z * z
-        xy, xz, yz = x * y, x * z, y * z
-        wx, wy, wz = w * x, w * y, w * z
-        return np.array([
-            [1.0 - 2.0 * (yy + zz), 2.0 * (xy - wz), 2.0 * (xz + wy)],
-            [2.0 * (xy + wz), 1.0 - 2.0 * (xx + zz), 2.0 * (yz - wx)],
-            [2.0 * (xz - wy), 2.0 * (yz + wx), 1.0 - 2.0 * (xx + yy)],
-        ])
     def _phase_progress(self, elapsed: float) -> Tuple[Phase, float]:
         if elapsed < self.cfg.stabilize_duration:
             return Phase.STABILIZE, elapsed / max(self.cfg.stabilize_duration, 1e-6)
@@ -515,7 +503,7 @@ class WbcPinocchioController(Node):
         msg.name = list(targets.keys())
         msg.position = [targets[name] for name in msg.name]
         self.target_pub.publish(msg)
-        self._publish_balance_markers(state)
+        self.balance_markers.publish(state.com, self.base_pose_msg)
 
         if self.cfg.log_period > 0.0:
             now = self.get_clock().now().nanoseconds / 1e9
@@ -530,75 +518,6 @@ class WbcPinocchioController(Node):
                     f'err={err_mag:.3f} vel={vel_mag:.3f} '
                     f'track={tracking_err:.3f} hold={self.hold_active}'
                 )
-
-    def _publish_balance_markers(self, state: RobotState):
-        if state.com is None:
-            return
-
-        now = self.get_clock().now().to_msg()
-        com_msg = PointStamped()
-        com_msg.header.stamp = now
-        com_msg.header.frame_id = 'world'
-        com_point = np.array(state.com, dtype=float)
-        if not self.cfg.com_in_world and self.base_pose_msg is not None:
-            pose = self.base_pose_msg.pose
-            rot = self._quat_to_rot(pose.orientation)
-            com_point = rot @ com_point + np.array(
-                [pose.position.x, pose.position.y, pose.position.z], dtype=float
-            )
-        com_msg.point.x = float(com_point[0])
-        com_msg.point.y = float(com_point[1])
-        com_msg.point.z = float(com_point[2])
-        self.com_pub.publish(com_msg)
-
-        zmp_msg = PointStamped()
-        zmp_msg.header.stamp = now
-        zmp_msg.header.frame_id = 'world'
-        zmp_msg.point.x = float(com_point[0])
-        zmp_msg.point.y = float(com_point[1])
-        zmp_msg.point.z = 0.0
-        self.zmp_pub.publish(zmp_msg)
-
-        markers = MarkerArray()
-        com_marker = Marker()
-        com_marker.header = com_msg.header
-        com_marker.ns = 'com'
-        com_marker.id = 0
-        com_marker.type = Marker.SPHERE
-        com_marker.action = Marker.ADD
-        com_marker.pose.position.x = com_msg.point.x
-        com_marker.pose.position.y = com_msg.point.y
-        com_marker.pose.position.z = com_msg.point.z
-        com_marker.pose.orientation.w = 1.0
-        com_marker.scale.x = 0.04
-        com_marker.scale.y = 0.04
-        com_marker.scale.z = 0.04
-        com_marker.color.r = 0.1
-        com_marker.color.g = 0.9
-        com_marker.color.b = 0.1
-        com_marker.color.a = 0.9
-
-        zmp_marker = Marker()
-        zmp_marker.header = zmp_msg.header
-        zmp_marker.ns = 'zmp'
-        zmp_marker.id = 1
-        zmp_marker.type = Marker.SPHERE
-        zmp_marker.action = Marker.ADD
-        zmp_marker.pose.position.x = zmp_msg.point.x
-        zmp_marker.pose.position.y = zmp_msg.point.y
-        zmp_marker.pose.position.z = zmp_msg.point.z
-        zmp_marker.pose.orientation.w = 1.0
-        zmp_marker.scale.x = 0.05
-        zmp_marker.scale.y = 0.05
-        zmp_marker.scale.z = 0.05
-        zmp_marker.color.r = 0.9
-        zmp_marker.color.g = 0.1
-        zmp_marker.color.b = 0.1
-        zmp_marker.color.a = 0.9
-
-        markers.markers.append(com_marker)
-        markers.markers.append(zmp_marker)
-        self.marker_pub.publish(markers)
 
     def _joint_state_callback(self, msg: JointState):
         self.joint_state = msg
