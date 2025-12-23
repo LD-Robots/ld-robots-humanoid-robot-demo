@@ -17,7 +17,7 @@ def generate_launch_description():
     )
     walking_enabled_arg = DeclareLaunchArgument(
         'walking_enabled',
-        default_value='false',
+        default_value='true',
         description='Enable WBC walking phases'
     )
 
