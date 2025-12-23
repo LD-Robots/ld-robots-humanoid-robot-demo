@@ -56,8 +56,16 @@ def train_batch(
     learning_rate: float = 3e-4,
     device: str = "cuda",
     total_timesteps_so_far: int = 0,
+    progress_bar: bool = False,
 ):
     """Train for a batch of steps, then save and cleanup."""
+
+    if model_path is not None:
+        model_path = Path(model_path)
+        if not model_path.exists() and model_path.suffix != ".zip":
+            zip_path = model_path.with_suffix(".zip")
+            if zip_path.exists():
+                model_path = zip_path
 
     print("\n" + "=" * 60)
     print(f"Training Batch: {batch_steps:,} steps")
@@ -87,6 +95,8 @@ def train_batch(
             clip_obs=10.0,
             clip_reward=10.0,
         )
+    # Ensure env is reset before learning (new env each batch)
+    env.reset()
 
     # Load or create model
     if model_path and model_path.exists():
@@ -95,7 +105,8 @@ def train_batch(
             model_path,
             env=env,
             device=device,
-            force_reset=False,  # Keep training stats
+            force_reset=True,  # New env per batch needs reset
+            tensorboard_log=str(save_dir / "logs"),
         )
         # Manually set num_timesteps to continue from where we left off
         model.num_timesteps = total_timesteps_so_far
@@ -103,8 +114,6 @@ def train_batch(
         print(f"✓ Continuing from timestep {total_timesteps_so_far:,}")
     else:
         print("Creating new model...")
-        # Use consistent tensorboard run name
-        tb_log_name = "PPO_robust"  # Same name for all batches
         model = PPO(
             "MlpPolicy",
             env,
@@ -125,9 +134,8 @@ def train_batch(
         model.num_timesteps = 0
         model._total_timesteps = 0
 
-    # Set consistent tensorboard log name for continuing runs
-    if hasattr(model, '_logger'):
-        model._logger = None  # Reset logger to use consistent naming
+    # Use a stable TensorBoard run name across batches
+    tb_log_name = "PPO_robust"
 
     # Callbacks
     checkpoint_callback = CheckpointCallback(
@@ -148,8 +156,9 @@ def train_batch(
         model.learn(
             total_timesteps=batch_steps,
             callback=callback,
-            progress_bar=True,
+            progress_bar=progress_bar,
             reset_num_timesteps=False,  # Continue timestep count
+            tb_log_name=tb_log_name,
         )
     except KeyboardInterrupt:
         print("\n⚠️  Training interrupted by user")
@@ -161,17 +170,18 @@ def train_batch(
     # Save final state
     latest_model = save_dir / "wbc_ppo_latest"
     model.save(latest_model)
+    latest_model_path = latest_model.with_suffix(".zip")
     env.save(vec_normalize_path)
 
     print(f"\n✓ Batch complete in {elapsed/60:.1f} minutes")
-    print(f"✓ Model saved: {latest_model}.zip")
+    print(f"✓ Model saved: {latest_model_path}")
 
     # Cleanup
     env.close()
     del model
     del env
 
-    return latest_model
+    return latest_model_path
 
 
 def train_robust(
@@ -180,6 +190,7 @@ def train_robust(
     save_dir: str = "models/wbc_ppo_robust",
     learning_rate: float = 3e-4,
     device: str = "cuda",
+    progress_bar: bool = False,
 ):
     """Train robustly with automatic batching and cleanup."""
 
@@ -233,6 +244,7 @@ def train_robust(
                 learning_rate=learning_rate,
                 device=device,
                 total_timesteps_so_far=total_trained,
+                progress_bar=progress_bar,
             )
 
             total_trained += batch_steps
@@ -302,6 +314,11 @@ def main():
         choices=["cuda", "cpu"],
         help="Device to use for training (default: cuda)",
     )
+    parser.add_argument(
+        "--progress",
+        action="store_true",
+        help="Enable progress bar (may conflict with rich live display)",
+    )
 
     args = parser.parse_args()
 
@@ -319,6 +336,7 @@ def main():
         save_dir=args.save_dir,
         learning_rate=args.lr,
         device=args.device,
+        progress_bar=args.progress,
     )
 
 
