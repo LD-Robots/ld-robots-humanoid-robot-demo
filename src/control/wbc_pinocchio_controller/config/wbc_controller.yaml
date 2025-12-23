@@ -41,7 +41,7 @@ wbc_controller:
     support_knee_bend: 0.2
     swing_knee_bend: 0.4
     support_hip_pitch: 0.35       # STRONG FORWARD LEAN for dynamic walking!
-    swing_hip_pitch: 0.45          # Forward lean during swing
+    swing_hip_pitch: 0.47          # Forward lean during swing
     support_ankle_pitch: 0.22     # Strong forward lean at ankle
     swing_ankle_pitch: 0.40        # Neutral swing ankle
     hip_roll_shift: 0.0            # Reduce from 0.1 - too aggressive
@@ -55,7 +55,7 @@ wbc_controller:
     balance_kp_roll: 3.0     # Higher roll gain
     balance_kd_roll: 0.4     # Higher roll damping
     balance_pitch_sign: -1.0 # FLIPPED: Inverted correction direction
-    imu_kp_pitch: 1.05       # Strong IMU feedback for fast tilt correction
+    imu_kp_pitch: 0.9       # Strong IMU feedback for fast tilt correction
     imu_kd_pitch: 0.10       # Increased IMU damping
     imu_kp_roll: 0.8         # Strong roll IMU feedback
     imu_kd_roll: 0.10        # Increased IMU roll damping
@@ -82,4 +82,4 @@ wbc_controller:
     # Foot frames for support center
     left_foot_frame: left_ankle_roll_link
     right_foot_frame: right_ankle_roll_link
-    support_center_x_offset: -0.037 # NEGATIVE = Target CoM AHEAD of support (forward bias!)
+    support_center_x_offset: -0.001 # NEGATIVE = Target CoM AHEAD of support (forward bias!)
