@@ -50,7 +50,7 @@ wbc_controller:
     swing_hip_yaw: 0.0
 
     # Balance correction - tuned for fast response without overshoot
-    balance_kp_pitch: 1.8    # Moderate gain for responsive correction
+    balance_kp_pitch: 2.0    # Moderate gain for responsive correction
     balance_kd_pitch: 0.6    # Moderate damping to prevent oscillations
     balance_kp_roll: 2.5     # Moderate roll gain
     balance_kd_roll: 0.3     # Moderate roll damping
