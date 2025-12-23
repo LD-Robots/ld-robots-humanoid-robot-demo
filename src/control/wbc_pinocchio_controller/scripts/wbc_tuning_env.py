@@ -8,12 +8,15 @@ import gymnasium as gym
 import numpy as np
 from typing import Dict, Tuple, Optional
 import subprocess
+import signal
+import os
 import time
 import yaml
 from pathlib import Path
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import JointState, Imu
 from geometry_msgs.msg import PoseStamped
 
@@ -27,11 +30,15 @@ class WbcTuningEnv(gym.Env):
         self,
         config_path: str = None,
         max_steps: int = 1000,  # 10 seconds @ 100Hz
+        warmup_steps: int = 50,
+        allow_timeout: bool = False,
         render_mode: Optional[str] = None,
     ):
         super().__init__()
 
         self.max_steps = max_steps
+        self.warmup_steps = warmup_steps
+        self.allow_timeout = allow_timeout
         self.render_mode = render_mode
         self.step_count = 0
 
@@ -52,6 +59,10 @@ class WbcTuningEnv(gym.Env):
         self.steps_taken = 0
         self.total_distance = 0.0
         self.last_com_x = 0.0
+        self.no_data = False
+        self._logged_joint = False
+        self._logged_imu = False
+        self._logged_pose = False
 
         # Load current config values as baseline
         self.baseline_params = self._load_baseline_config()
@@ -347,36 +358,56 @@ class WbcTuningEnv(gym.Env):
         # Launch MuJoCo + WBC
         launch_cmd = [
             'ros2', 'launch',
-            'humanoid_mujoco', 'mujoco_with_wbc.launch.py'
+            'wbc_pinocchio_controller', 'wbc_full_mujoco.launch.py',
+            'use_viewer:=false', 'use_rviz:=false'
         ]
 
         self.sim_process = subprocess.Popen(
             launch_cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            preexec_fn=lambda: None
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            preexec_fn=os.setsid,
         )
 
         # Wait for nodes to start
         time.sleep(3.0)
+        if self.sim_process.poll() is not None:
+            try:
+                stdout, stderr = self.sim_process.communicate(timeout=1)
+            except Exception:
+                stdout, stderr = b"", b""
+            if stdout:
+                print("WARN: ROS2 launch stdout (first 2000 chars):")
+                print(stdout.decode(errors="replace")[:2000])
+            if stderr:
+                print("WARN: ROS2 launch stderr (first 2000 chars):")
+                print(stderr.decode(errors="replace")[:2000])
+            print("WARN: ROS2 launch exited early; no simulation process running")
+            self.no_data = True
 
         # Create ROS2 subscribers
         self.node = rclpy.create_node('wbc_rl_env')
         self.joint_sub = self.node.create_subscription(
-            JointState, '/joint_states', self._joint_callback, 10
+            JointState, '/joint_states', self._joint_callback, qos_profile_sensor_data
         )
         self.imu_sub = self.node.create_subscription(
-            Imu, '/imu/data', self._imu_callback, 10
+            Imu, '/imu/data', self._imu_callback, qos_profile_sensor_data
         )
         self.pose_sub = self.node.create_subscription(
-            PoseStamped, '/pelvis/pose', self._pose_callback, 10
+            PoseStamped, '/pelvis/pose', self._pose_callback, qos_profile_sensor_data
         )
 
     def _stop_simulation(self):
         """Stop ROS2 simulation."""
         if self.sim_process is not None:
-            self.sim_process.terminate()
-            self.sim_process.wait(timeout=5)
+            try:
+                os.killpg(os.getpgid(self.sim_process.pid), signal.SIGTERM)
+                self.sim_process.wait(timeout=5)
+            except Exception:
+                try:
+                    os.killpg(os.getpgid(self.sim_process.pid), signal.SIGKILL)
+                except Exception:
+                    pass
             self.sim_process = None
 
         if hasattr(self, 'node'):
@@ -384,12 +415,24 @@ class WbcTuningEnv(gym.Env):
 
     def _joint_callback(self, msg: JointState):
         self.joint_state = msg
+        self.no_data = False
+        if not self._logged_joint:
+            print("INFO: Received first /joint_states message")
+            self._logged_joint = True
 
     def _imu_callback(self, msg: Imu):
         self.imu_msg = msg
+        self.no_data = False
+        if not self._logged_imu:
+            print("INFO: Received first /imu/data message")
+            self._logged_imu = True
 
     def _pose_callback(self, msg: PoseStamped):
         self.base_pose = msg
+        self.no_data = False
+        if not self._logged_pose:
+            print("INFO: Received first /pelvis/pose message")
+            self._logged_pose = True
 
     def _get_observation(self) -> np.ndarray:
         """Build observation vector from robot state."""
@@ -439,7 +482,13 @@ class WbcTuningEnv(gym.Env):
 
     def _check_termination(self) -> Tuple[bool, str]:
         """Check if episode should terminate."""
-        if self.base_pose is None:
+        if self.no_data:
+            return True, "no_data"
+
+        if self.step_count <= self.warmup_steps:
+            return False, ""
+
+        if self.base_pose is None or self.joint_state is None:
             return False, ""
 
         # Fell detection
@@ -460,14 +509,17 @@ class WbcTuningEnv(gym.Env):
             if abs(roll) > 0.785 or abs(pitch) > 0.785:  # 45°
                 return True, "tipped"
 
-        # Max steps reached
-        if self.step_count >= self.max_steps:
+        # Max steps reached (optional)
+        if self.allow_timeout and self.step_count >= self.max_steps:
             return True, "timeout"
 
         return False, ""
 
     def _compute_reward(self) -> float:
         """Compute reward for current state."""
+        if self.step_count <= self.warmup_steps:
+            return 0.0
+
         reward = 0.0
 
         if self.base_pose is None:
@@ -517,6 +569,10 @@ class WbcTuningEnv(gym.Env):
         self.joint_state = None
         self.imu_msg = None
         self.base_pose = None
+        self.no_data = False
+        self._logged_joint = False
+        self._logged_imu = False
+        self._logged_pose = False
 
         # Apply new random or given config
         if options and 'params' in options:
@@ -531,12 +587,21 @@ class WbcTuningEnv(gym.Env):
         self._start_simulation()
 
         # Wait for first observations
-        timeout = 5.0
+        timeout = 15.0
         start = time.time()
         while (self.joint_state is None or self.base_pose is None):
             rclpy.spin_once(self.node, timeout_sec=0.01)
             if time.time() - start > timeout:
                 break
+        if self.joint_state is None or self.base_pose is None:
+            print(
+                "WARN: No ROS2 data received after reset "
+                f"(joint_state: {self.joint_state is not None}, "
+                f"base_pose: {self.base_pose is not None}, "
+                f"imu: {self.imu_msg is not None})"
+            )
+            if self.sim_process is not None and self.sim_process.poll() is not None:
+                self.no_data = True
 
         obs = self._get_observation()
         info = {}
@@ -560,6 +625,8 @@ class WbcTuningEnv(gym.Env):
         terminated, reason = self._check_termination()
         if terminated:
             self.fell = (reason in ['fell_low', 'tipped'])
+            # Stop simulation early to avoid piling up processes
+            self._stop_simulation()
 
         # Compute reward
         reward = self._compute_reward()
@@ -571,6 +638,7 @@ class WbcTuningEnv(gym.Env):
             'distance': self.total_distance,
             'fell': self.fell,
             'reason': reason if terminated else '',
+            'obs_valid': (self.joint_state is not None and self.base_pose is not None),
         }
 
         return obs, reward, terminated, truncated, info

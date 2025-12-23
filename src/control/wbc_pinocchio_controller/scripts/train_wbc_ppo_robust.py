@@ -17,10 +17,60 @@ import signal
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
-from stable_baselines3.common.callbacks import CheckpointCallback, CallbackList
+from stable_baselines3.common.callbacks import CheckpointCallback, CallbackList, BaseCallback
 from stable_baselines3.common.monitor import Monitor
 
 from wbc_tuning_env import WbcTuningEnv
+
+
+class EpisodeInfoCallback(BaseCallback):
+    """Log episode termination reasons and distance to TensorBoard."""
+
+    def __init__(self, verbose: int = 0):
+        super().__init__(verbose)
+        self._reset_counters()
+
+    def _reset_counters(self):
+        self.episode_count = 0
+        self.fell_count = 0
+        self.timeout_count = 0
+        self.distance_sum = 0.0
+        self.reward_sum = 0.0
+        self.step_count = 0
+        self.obs_valid_sum = 0
+
+    def _on_step(self) -> bool:
+        infos = self.locals.get("infos", [])
+        dones = self.locals.get("dones", [])
+        rewards = self.locals.get("rewards", [])
+
+        if rewards is not None:
+            self.reward_sum += float(sum(rewards))
+            self.step_count += len(rewards)
+
+        for info, done in zip(infos, dones):
+            if info.get("obs_valid"):
+                self.obs_valid_sum += 1
+            if not done:
+                continue
+            self.episode_count += 1
+            if info.get("fell"):
+                self.fell_count += 1
+            if info.get("reason") == "timeout":
+                self.timeout_count += 1
+            if "distance" in info:
+                self.distance_sum += float(info["distance"])
+        return True
+
+    def _on_rollout_end(self) -> None:
+        if self.step_count > 0:
+            self.logger.record("custom/reward_per_step_mean", self.reward_sum / self.step_count)
+            self.logger.record("custom/obs_valid_rate", self.obs_valid_sum / self.step_count)
+        if self.episode_count > 0:
+            self.logger.record("custom/term_fell_rate", self.fell_count / self.episode_count)
+            self.logger.record("custom/term_timeout_rate", self.timeout_count / self.episode_count)
+            self.logger.record("custom/distance_mean", self.distance_sum / self.episode_count)
+        self._reset_counters()
 
 
 def cleanup_processes():
@@ -146,7 +196,7 @@ def train_batch(
         save_vecnormalize=True,
     )
 
-    callback = CallbackList([checkpoint_callback])
+    callback = CallbackList([checkpoint_callback, EpisodeInfoCallback()])
 
     # Train
     print(f"\n🚀 Starting training for {batch_steps:,} steps...")
