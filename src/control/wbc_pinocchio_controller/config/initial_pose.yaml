@@ -2,19 +2,19 @@
 stable_stance:
   joint_positions:
     left_leg:
-      hip_pitch: -0.1
+      hip_pitch: -0.03      # More upright (was -0.1, too forward)
       hip_roll: 0.06
       hip_yaw: 0.0
-      knee: 0.08
-      ankle_pitch: -0.07
+      knee: 0.12            # Slightly more bent for stability (was 0.08)
+      ankle_pitch: -0.02    # Less toe-up (was -0.07)
       ankle_roll: 0.0
 
     right_leg:
-      hip_pitch: -0.1
+      hip_pitch: -0.03      # More upright (was -0.1)
       hip_roll: -0.06
       hip_yaw: 0.0
-      knee: 0.08
-      ankle_pitch: -0.07
+      knee: 0.12            # Slightly more bent (was 0.08)
+      ankle_pitch: -0.02    # Less toe-up (was -0.07)
       ankle_roll: 0.0
 
     waist:

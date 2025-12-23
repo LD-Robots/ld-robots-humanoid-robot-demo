@@ -199,7 +199,7 @@ class MuJoCoSimulator(Node):
         """Publish IMU sensor data."""
         imu_msg = Imu()
         imu_msg.header.stamp = current_time.to_msg()
-        imu_msg.header.frame_id = 'imu_link'
+        imu_msg.header.frame_id = 'torso_link'
 
         # Find IMU sensors (using torso sensors as primary)
         accel_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SENSOR, 'imu-torso-linear-acceleration')

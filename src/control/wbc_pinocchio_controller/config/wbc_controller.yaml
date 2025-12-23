@@ -11,11 +11,11 @@ wbc_controller:
     joint_states_topic: /joint_states
     imu_topic: /imu/data
     base_pose_topic: /pelvis/pose
-    com_in_world: false
+    com_in_world: false         # Use model frame (world frame has sign issues)
     hold_enabled: true
     hold_enter_duration: 0.8
     hold_com_threshold: 0.015
-    hold_vel_threshold: 0.08
+    hold_vel_threshold: 0.20
     hold_release_com_threshold: 0.02
     hold_release_vel_threshold: 0.08
 
@@ -27,7 +27,7 @@ wbc_controller:
 
     # Control timing
     control_rate: 100.0
-    walking_enabled: true
+    walking_enabled: false
     balance_active: true
     stabilize_duration: 3.0
 
@@ -40,31 +40,36 @@ wbc_controller:
     # Support/swing posture
     support_knee_bend: 0.28
     swing_knee_bend: 0.65
-    support_hip_pitch: 0.35
+    support_hip_pitch: 0.20
     swing_hip_pitch: 0.25
-    support_ankle_pitch: 0.12
+    support_ankle_pitch: 0.08
     swing_ankle_pitch: 0.12
     hip_roll_shift: 0.08
     swing_hip_roll_out: 0.05
     support_hip_yaw: 0.02
     swing_hip_yaw: 0.0
 
-    # Balance correction
-    balance_kp_pitch: 5.0
-    balance_kd_pitch: 0.5
-    balance_kp_roll: 5.0
-    balance_kd_roll: 0.5
-    ankle_pitch_limit: 0.08
-    hip_pitch_limit: 0.09
-    ankle_roll_limit: 0.08
+    # Balance correction - tuned for fast response without overshoot
+    balance_kp_pitch: 1.8    # Moderate gain for responsive correction
+    balance_kd_pitch: 0.6    # Moderate damping to prevent oscillations
+    balance_kp_roll: 2.5     # Moderate roll gain
+    balance_kd_roll: 0.3     # Moderate roll damping
+    balance_pitch_sign: -1.0 # FLIPPED: Inverted correction direction
+    imu_kp_pitch: 0.5        # Moderate IMU feedback for fast tilt correction
+    imu_kd_pitch: 0.08       # Increased IMU damping
+    imu_kp_roll: 0.5         # Moderate roll IMU feedback
+    imu_kd_roll: 0.08        # Increased IMU roll damping
+    ankle_pitch_limit: 0.10  # Increased from 0.08 for more range
+    hip_pitch_limit: 0.3
+    ankle_roll_limit: 0.03   # Increased from 0.02
     hip_roll_limit: 0.10
-    com_deadzone: 0.015
+    com_deadzone: 0.008      # Reduced for earlier response (was ignoring errors!)
     foot_length: 0.12
     foot_width: 0.08
-    prediction_time: 0.05
+    prediction_time: 0.04    # Moderate prediction horizon
 
     # Filtering
-    filter_alpha: 0.2
+    filter_alpha: 0.15       # Reduced from 0.2 for more aggressive filtering (smoother)
     log_period: 1.0
 
     # Crocoddyl
@@ -73,3 +78,8 @@ wbc_controller:
     # Initial pose source
     initial_pose_yaml: /home/alex/Documents/GitHub/ld-robots-humanoid-robot-demo/src/control/wbc_pinocchio_controller/config/initial_pose.yaml
     initial_pose_key: 'stable_stance'
+
+    # Foot frames for support center
+    left_foot_frame: left_ankle_roll_link
+    right_foot_frame: right_ankle_roll_link
+    support_center_x_offset: -0.01

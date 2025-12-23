@@ -66,6 +66,11 @@ class WbcConfig:
     balance_kd_pitch: float = 0.4
     balance_kp_roll: float = 1.5
     balance_kd_roll: float = 0.4
+    balance_pitch_sign: float = 1.0
+    imu_kp_pitch: float = 0.0
+    imu_kd_pitch: float = 0.0
+    imu_kp_roll: float = 0.0
+    imu_kd_roll: float = 0.0
     ankle_pitch_limit: float = 0.12
     hip_pitch_limit: float = 0.12
     ankle_roll_limit: float = 0.12
@@ -79,6 +84,9 @@ class WbcConfig:
     log_period: float = 1.0
     initial_pose_yaml: str = ''
     initial_pose_key: str = ''
+    left_foot_frame: str = 'left_ankle_roll_link'
+    right_foot_frame: str = 'right_ankle_roll_link'
+    support_center_x_offset: float = 0.0
 
 
 def load_wbc_config(node) -> WbcConfig:
@@ -123,6 +131,11 @@ def load_wbc_config(node) -> WbcConfig:
     node.declare_parameter('balance_kd_pitch', defaults.balance_kd_pitch)
     node.declare_parameter('balance_kp_roll', defaults.balance_kp_roll)
     node.declare_parameter('balance_kd_roll', defaults.balance_kd_roll)
+    node.declare_parameter('balance_pitch_sign', defaults.balance_pitch_sign)
+    node.declare_parameter('imu_kp_pitch', defaults.imu_kp_pitch)
+    node.declare_parameter('imu_kd_pitch', defaults.imu_kd_pitch)
+    node.declare_parameter('imu_kp_roll', defaults.imu_kp_roll)
+    node.declare_parameter('imu_kd_roll', defaults.imu_kd_roll)
     node.declare_parameter('ankle_pitch_limit', defaults.ankle_pitch_limit)
     node.declare_parameter('hip_pitch_limit', defaults.hip_pitch_limit)
     node.declare_parameter('ankle_roll_limit', defaults.ankle_roll_limit)
@@ -136,6 +149,9 @@ def load_wbc_config(node) -> WbcConfig:
     node.declare_parameter('log_period', defaults.log_period)
     node.declare_parameter('initial_pose_yaml', defaults.initial_pose_yaml)
     node.declare_parameter('initial_pose_key', defaults.initial_pose_key)
+    node.declare_parameter('left_foot_frame', defaults.left_foot_frame)
+    node.declare_parameter('right_foot_frame', defaults.right_foot_frame)
+    node.declare_parameter('support_center_x_offset', defaults.support_center_x_offset)
 
     return WbcConfig(
         model_xml_path=_as_str(node.get_parameter('model_xml_path').value),
@@ -177,6 +193,11 @@ def load_wbc_config(node) -> WbcConfig:
         balance_kd_pitch=_as_float(node.get_parameter('balance_kd_pitch').value),
         balance_kp_roll=_as_float(node.get_parameter('balance_kp_roll').value),
         balance_kd_roll=_as_float(node.get_parameter('balance_kd_roll').value),
+        balance_pitch_sign=_as_float(node.get_parameter('balance_pitch_sign').value),
+        imu_kp_pitch=_as_float(node.get_parameter('imu_kp_pitch').value),
+        imu_kd_pitch=_as_float(node.get_parameter('imu_kd_pitch').value),
+        imu_kp_roll=_as_float(node.get_parameter('imu_kp_roll').value),
+        imu_kd_roll=_as_float(node.get_parameter('imu_kd_roll').value),
         ankle_pitch_limit=_as_float(node.get_parameter('ankle_pitch_limit').value),
         hip_pitch_limit=_as_float(node.get_parameter('hip_pitch_limit').value),
         ankle_roll_limit=_as_float(node.get_parameter('ankle_roll_limit').value),
@@ -190,4 +211,7 @@ def load_wbc_config(node) -> WbcConfig:
         log_period=_as_float(node.get_parameter('log_period').value),
         initial_pose_yaml=_as_str(node.get_parameter('initial_pose_yaml').value),
         initial_pose_key=_as_str(node.get_parameter('initial_pose_key').value),
+        left_foot_frame=_as_str(node.get_parameter('left_foot_frame').value),
+        right_foot_frame=_as_str(node.get_parameter('right_foot_frame').value),
+        support_center_x_offset=_as_float(node.get_parameter('support_center_x_offset').value),
     )

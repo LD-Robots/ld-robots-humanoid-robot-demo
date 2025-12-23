@@ -50,6 +50,8 @@ class WbcPinocchioController(Node):
             self,
             urdf_path=self.cfg.urdf_path,
             com_in_world=self.cfg.com_in_world,
+            left_foot_frame=self.cfg.left_foot_frame,
+            right_foot_frame=self.cfg.right_foot_frame,
         )
 
         self.joint_state = None
@@ -93,20 +95,28 @@ class WbcPinocchioController(Node):
             self.get_logger().warn('Crocoddyl integration not implemented yet; running quasi-static WBC only.')
 
         self.balance_controller = BalanceController(
+            self,
             com_in_world=self.cfg.com_in_world,
             com_deadzone=self.cfg.com_deadzone,
             foot_length=self.cfg.foot_length,
             foot_width=self.cfg.foot_width,
+            support_center_x_offset=self.cfg.support_center_x_offset,
             prediction_time=self.cfg.prediction_time,
             balance_kp_pitch=self.cfg.balance_kp_pitch,
             balance_kd_pitch=self.cfg.balance_kd_pitch,
             balance_kp_roll=self.cfg.balance_kp_roll,
             balance_kd_roll=self.cfg.balance_kd_roll,
+            balance_pitch_sign=self.cfg.balance_pitch_sign,
+            imu_kp_pitch=self.cfg.imu_kp_pitch,
+            imu_kd_pitch=self.cfg.imu_kd_pitch,
+            imu_kp_roll=self.cfg.imu_kp_roll,
+            imu_kd_roll=self.cfg.imu_kd_roll,
             ankle_pitch_limit=self.cfg.ankle_pitch_limit,
             ankle_roll_limit=self.cfg.ankle_roll_limit,
             hip_pitch_limit=self.cfg.hip_pitch_limit,
             hip_roll_limit=self.cfg.hip_roll_limit,
             filter_alpha=self.cfg.filter_alpha,
+            log_period=self.cfg.log_period,
         )
         self.gait_phase = GaitPhaseGenerator(
             stabilize_duration=self.cfg.stabilize_duration,
@@ -185,7 +195,7 @@ class WbcPinocchioController(Node):
             targets['left_hip_roll_joint'] = targets.get('left_hip_roll_joint', 0.0) + hip_roll_offset
             targets['right_hip_roll_joint'] = targets.get('right_hip_roll_joint', 0.0) - hip_roll_offset
 
-        corrections = self.balance_controller.compute(state, self.base_pose_msg)
+        corrections = self.balance_controller.compute(state, self.base_pose_msg, self.imu_msg)
 
         targets['left_hip_pitch_joint'] = targets.get('left_hip_pitch_joint', 0.0) + corrections.hip_pitch
         targets['right_hip_pitch_joint'] = targets.get('right_hip_pitch_joint', 0.0) + corrections.hip_pitch

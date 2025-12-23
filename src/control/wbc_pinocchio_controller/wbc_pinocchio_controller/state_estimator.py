@@ -20,17 +20,32 @@ class RobotState:
     joint_velocities: Dict[str, float]
     com: Optional[np.ndarray]
     com_vel: Optional[np.ndarray]
+    left_foot_pos: Optional[np.ndarray]
+    right_foot_pos: Optional[np.ndarray]
 
 
 class StateEstimator:
-    def __init__(self, node, *, urdf_path: str, com_in_world: bool) -> None:
+    def __init__(
+        self,
+        node,
+        *,
+        urdf_path: str,
+        com_in_world: bool,
+        left_foot_frame: str,
+        right_foot_frame: str,
+    ) -> None:
         self._node = node
         self._urdf_path = urdf_path
         self._com_in_world = com_in_world
+        self._left_foot_frame = left_foot_frame
+        self._right_foot_frame = right_foot_frame
         self._pin_model = None
         self._pin_data = None
         self._pin_joint_map: Dict[str, int] = {}
         self._has_floating_base = False
+        self._floating_base_joint_names = set()
+        self._left_foot_frame_id = None
+        self._right_foot_frame_id = None
 
         if PINOCCHIO_AVAILABLE and urdf_path:
             try:
@@ -47,12 +62,27 @@ class StateEstimator:
                         continue
                     joint_id = self._pin_model.getJointId(name)
                     if joint_id >= 0:
-                        idx = self._pin_model.joints[joint_id].idx_q
+                        joint = self._pin_model.joints[joint_id]
+                        idx = joint.idx_q
                         self._pin_joint_map[name] = idx
+                        if joint.nq == 7:
+                            self._floating_base_joint_names.add(name)
                 self._node.get_logger().info(f'Pinocchio model loaded: {self._pin_model.nq} q')
                 self._node.get_logger().info(
                     f'CoM frame: {"world" if self._com_in_world else "model"}'
                 )
+                self._left_foot_frame_id = self._pin_model.getFrameId(self._left_foot_frame)
+                if self._left_foot_frame_id == len(self._pin_model.frames):
+                    self._node.get_logger().warn(
+                        f'Left foot frame not found: {self._left_foot_frame}'
+                    )
+                    self._left_foot_frame_id = None
+                self._right_foot_frame_id = self._pin_model.getFrameId(self._right_foot_frame)
+                if self._right_foot_frame_id == len(self._pin_model.frames):
+                    self._node.get_logger().warn(
+                        f'Right foot frame not found: {self._right_foot_frame}'
+                    )
+                    self._right_foot_frame_id = None
             except Exception as exc:
                 self._node.get_logger().warn(f'Failed to load Pinocchio model: {exc}')
 
@@ -73,11 +103,13 @@ class StateEstimator:
 
         com = None
         com_vel = None
+        left_foot_pos = None
+        right_foot_pos = None
         if self._pin_model is not None and self._pin_data is not None:
             q = np.zeros(self._pin_model.nq)
             dq = np.zeros(self._pin_model.nv)
             for joint_name, q_idx in self._pin_joint_map.items():
-                if joint_name == 'floating_base_joint' and self._com_in_world:
+                if joint_name in self._floating_base_joint_names:
                     continue
                 if joint_name in positions:
                     q[q_idx] = positions[joint_name]
@@ -97,11 +129,23 @@ class StateEstimator:
             try:
                 pin.forwardKinematics(self._pin_model, self._pin_data, q, dq)
                 pin.centerOfMass(self._pin_model, self._pin_data, q, dq)
+                pin.updateFramePlacements(self._pin_model, self._pin_data)
                 com = self._pin_data.com[0].copy()
                 com_vel = self._pin_data.vcom[0].copy()
+                if self._left_foot_frame_id is not None:
+                    left_foot_pos = self._pin_data.oMf[self._left_foot_frame_id].translation.copy()
+                if self._right_foot_frame_id is not None:
+                    right_foot_pos = self._pin_data.oMf[self._right_foot_frame_id].translation.copy()
             except Exception as exc:
                 self._node.get_logger().warn(
                     f'Pinocchio computation failed: {exc}', throttle_duration_sec=5.0
                 )
 
-        return RobotState(positions, velocities, com, com_vel)
+        return RobotState(
+            positions,
+            velocities,
+            com,
+            com_vel,
+            left_foot_pos,
+            right_foot_pos,
+        )
