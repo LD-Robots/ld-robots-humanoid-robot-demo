@@ -79,11 +79,32 @@ GAIN_KEYS = [
 GAIN_INDICES = [23, 24, 25, 26, 27, 28, 29, 30]
 
 
-def _load_baseline_params(config_path: Path) -> np.ndarray:
+def _load_config_with_node_key(config_path: Path):
     with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
+        config = yaml.safe_load(f) or {}
 
-    wbc_params = config["wbc_controller"]["ros__parameters"]
+    if "wbc_controller" in config:
+        node_key = "wbc_controller"
+        params = config[node_key].get("ros__parameters", {})
+        return config, node_key, params
+
+    for node_key, node_val in config.items():
+        if not isinstance(node_val, dict):
+            continue
+        params = node_val.get("ros__parameters")
+        if isinstance(params, dict):
+            return config, node_key, params
+
+    raise KeyError("Missing wbc_controller ros__parameters in config")
+
+
+def _load_config_params(config_path: Path) -> dict:
+    _config, _node_key, params = _load_config_with_node_key(config_path)
+    return params
+
+
+def _load_baseline_params(config_path: Path) -> np.ndarray:
+    wbc_params = _load_config_params(config_path)
     baseline = np.array([
         # Timing
         wbc_params.get("hold_enter_duration", 0.8),
@@ -144,6 +165,7 @@ def evaluate_model(
     model_path: str,
     n_episodes: int = 10,
     render: bool = False,
+    baseline_config: str = None,
 ):
     """Evaluate trained model and report performance."""
 
@@ -163,12 +185,20 @@ def evaluate_model(
 
     # Load normalization stats if available
     model_dir = Path(model_path).parent
-    vec_normalize_path = model_dir / "vecnormalize_final.pkl"
+    vec_normalize_path = model_dir / "best_model_vecnormalize.pkl"
+    if not vec_normalize_path.exists():
+        vec_normalize_path = model_dir / "vecnormalize_final.pkl"
     if not vec_normalize_path.exists():
         vec_normalize_path = model_dir / "vecnormalize_latest.pkl"
 
     # Create environment
-    env = env_cls(render_mode="human" if render else None)
+    env_config = baseline_config
+    if env_config is None:
+        env_config = Path(__file__).parent.parent / "config" / "wbc_controller.yaml"
+    env = env_cls(
+        config_path=str(env_config),
+        render_mode="human" if render else None,
+    )
 
     # Check if VecNormalize wrapper is needed
     is_vec_env = False
@@ -296,7 +326,12 @@ def export_best_config(
     print("Exporting Best WBC Configuration")
     print("=" * 60)
 
-    best_params, episode_rewards = evaluate_model(model_path, n_episodes=n_eval_episodes, render=False)
+    best_params, episode_rewards = evaluate_model(
+        model_path,
+        n_episodes=n_eval_episodes,
+        render=False,
+        baseline_config=baseline_config,
+    )
 
     if best_params is None:
         print("ERROR: Could not determine best parameters")
@@ -333,14 +368,13 @@ def export_best_config(
         pkg_path = Path(__file__).parent.parent
         output_path = pkg_path / "config" / "wbc_controller_optimized.yaml"
 
-    # Load base config and update with optimized params (only selected keys)
-    with open(base_config_path, 'r') as f:
-        config = yaml.safe_load(f)
+    # Load base config and update with optimized params (all keys preserved)
+    config, node_key, wbc_params = _load_config_with_node_key(base_config_path)
 
     # Update parameters
-    wbc_params = config['wbc_controller']['ros__parameters']
     for key, value in best_config.items():
         wbc_params[key] = value
+    config[node_key]['ros__parameters'] = wbc_params
 
     # Add metadata
     config['_metadata'] = {
@@ -373,7 +407,12 @@ def compare_configs(
     print("=" * 60)
 
     # Get optimized params
-    best_params, _ = evaluate_model(model_path, n_episodes=3, render=False)
+    best_params, _ = evaluate_model(
+        model_path,
+        n_episodes=3,
+        render=False,
+        baseline_config=baseline_config,
+    )
 
     if baseline_config is None:
         baseline_path = Path(__file__).parent.parent / "config" / "wbc_controller.yaml"
@@ -394,9 +433,7 @@ def compare_configs(
         )
 
     # Load baseline
-    with open(baseline_path, 'r') as f:
-        baseline = yaml.safe_load(f)
-        baseline_params = baseline['wbc_controller']['ros__parameters']
+    _baseline_config, _node_key, baseline_params = _load_config_with_node_key(baseline_path)
 
     print(f"\n{'Parameter':<30s} {'Baseline':>12s} {'Optimized':>12s} {'Change':>12s}")
     print("-" * 70)
@@ -466,6 +503,7 @@ def main():
             args.model_path,
             n_episodes=args.episodes,
             render=args.render,
+            baseline_config=args.baseline,
         )
 
 
