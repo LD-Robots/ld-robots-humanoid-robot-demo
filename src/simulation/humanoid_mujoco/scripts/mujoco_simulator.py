@@ -35,6 +35,7 @@ class MuJoCoSimulator(Node):
         self.declare_parameter('use_viewer', True)
         self.declare_parameter('publish_rate', 100.0)  # Hz
         self.declare_parameter('realtime_factor', 1.0)
+        self.declare_parameter('publish_clock', True)
         self.declare_parameter('torso_body_name', '')
         self.declare_parameter('pelvis_body_name', '')
 
@@ -42,6 +43,7 @@ class MuJoCoSimulator(Node):
         self.use_viewer = self.get_parameter('use_viewer').get_parameter_value().bool_value
         self.publish_rate = self.get_parameter('publish_rate').get_parameter_value().double_value
         self.realtime_factor = self.get_parameter('realtime_factor').get_parameter_value().double_value
+        self.publish_clock = self.get_parameter('publish_clock').get_parameter_value().bool_value
         self.torso_body_name = self.get_parameter('torso_body_name').get_parameter_value().string_value
         self.pelvis_body_name = self.get_parameter('pelvis_body_name').get_parameter_value().string_value
 
@@ -147,13 +149,14 @@ class MuJoCoSimulator(Node):
         if not MUJOCO_AVAILABLE:
             return
 
-        # Publish simulation clock
-        clock_msg = Clock()
-        sim_time_sec = int(self.data.time)
-        sim_time_nsec = int((self.data.time - sim_time_sec) * 1e9)
-        clock_msg.clock.sec = sim_time_sec
-        clock_msg.clock.nanosec = sim_time_nsec
-        self.clock_pub.publish(clock_msg)
+        # Publish simulation clock (optional)
+        if self.publish_clock:
+            clock_msg = Clock()
+            sim_time_sec = int(self.data.time)
+            sim_time_nsec = int((self.data.time - sim_time_sec) * 1e9)
+            clock_msg.clock.sec = sim_time_sec
+            clock_msg.clock.nanosec = sim_time_nsec
+            self.clock_pub.publish(clock_msg)
 
         # Use simulation time for all timestamps
         current_time = self.get_clock().now()

@@ -429,12 +429,14 @@ class WbcTuningEnv(gym.Env):
         use_viewer = 'true' if self.render_mode == 'human' else 'false'
 
         # Build launch command with namespace support
+        publish_clock = 'true' if (not self.namespace or self.namespace == 'robot_0') else 'false'
         launch_cmd = [
             'ros2', 'launch',
             'wbc_pinocchio_controller', 'wbc_full_mujoco.launch.py',
             f'use_viewer:={use_viewer}',
             'use_rviz:=false',
             f'wbc_config:={self.config_path}',
+            f'publish_clock:={publish_clock}',
         ]
 
         # Add namespace parameter if specified

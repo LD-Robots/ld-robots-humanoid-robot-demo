@@ -61,6 +61,11 @@ def generate_launch_description():
         default_value='100.0',
         description='Rate at which to publish robot state (Hz)'
     )
+    publish_clock_arg = DeclareLaunchArgument(
+        'publish_clock',
+        default_value='true',
+        description='Whether to publish /clock from this simulation'
+    )
     realtime_factor_arg = DeclareLaunchArgument(
         'realtime_factor',
         default_value='1.0',
@@ -103,12 +108,15 @@ def generate_launch_description():
         output='screen',
         remappings=[
             ('clock', '/clock'),
+            ('/tf', 'tf'),
+            ('/tf_static', 'tf_static'),
         ],
         parameters=[{
             'model_path': LaunchConfiguration('model_path'),
             'use_viewer': LaunchConfiguration('use_viewer'),
             'publish_rate': LaunchConfiguration('publish_rate'),
             'realtime_factor': LaunchConfiguration('realtime_factor'),
+            'publish_clock': LaunchConfiguration('publish_clock'),
             'torso_body_name': LaunchConfiguration('torso_body_name'),
             'pelvis_body_name': LaunchConfiguration('pelvis_body_name'),
             'hold_start_duration': LaunchConfiguration('hold_start_duration'),
@@ -192,6 +200,7 @@ def generate_launch_description():
         wbc_config_arg,
         model_path_arg,
         publish_rate_arg,
+        publish_clock_arg,
         realtime_factor_arg,
         torso_body_name_arg,
         pelvis_body_name_arg,
