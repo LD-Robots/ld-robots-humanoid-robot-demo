@@ -378,17 +378,20 @@ class WbcTuningEnv(gym.Env):
         # Kill any existing simulation
         self._stop_simulation()
 
-        # Launch MuJoCo + WBC with namespace if specified
+        # Determine if viewer should be enabled based on render_mode
+        use_viewer = 'true' if self.render_mode == 'human' else 'false'
+
+        # Launch MuJoCo + WBC
         launch_cmd = [
             'ros2', 'launch',
             'wbc_pinocchio_controller', 'wbc_full_mujoco.launch.py',
-            'use_viewer:=false', 'use_rviz:=false'
+            f'use_viewer:={use_viewer}',
+            'use_rviz:=false'  # RViz disabled for RL training
         ]
 
-        # Add namespace to launch if specified
-        if self.namespace:
-            launch_cmd.append(f'namespace:={self.namespace}')
-            launch_cmd.append(f'config_file:={self.config_path}')
+        # Note: Namespace support requires launch file modifications
+        # For now, parallel environments will share topics (sequential execution)
+        # TODO: Add namespace support to launch file for true parallel execution
 
         self.sim_process = subprocess.Popen(
             launch_cmd,
@@ -397,8 +400,9 @@ class WbcTuningEnv(gym.Env):
             preexec_fn=os.setsid,
         )
 
-        # Wait for nodes to start
-        time.sleep(3.0)
+        # Wait for nodes to start (longer timeout for parallel environments)
+        wait_time = 5.0 if self.namespace else 3.0
+        time.sleep(wait_time)
         if self.sim_process.poll() is not None:
             try:
                 stdout, stderr = self.sim_process.communicate(timeout=1)
@@ -413,23 +417,21 @@ class WbcTuningEnv(gym.Env):
             print("WARN: ROS2 launch exited early; no simulation process running")
             self.no_data = True
 
-        # Create ROS2 subscribers with namespace
+        # Create ROS2 subscribers
+        # Use unique node name for parallel environments, but same topics
         node_name = f'wbc_rl_env_{self.namespace}' if self.namespace else 'wbc_rl_env'
         self.node = rclpy.create_node(node_name)
 
-        # Topic names with namespace
-        joint_topic = f'/{self.namespace}/joint_states' if self.namespace else '/joint_states'
-        imu_topic = f'/{self.namespace}/imu/data' if self.namespace else '/imu/data'
-        pose_topic = f'/{self.namespace}/pelvis/pose' if self.namespace else '/pelvis/pose'
-
+        # Topic names (not namespaced yet - requires launch file support)
+        # TODO: Use namespaced topics when launch file is updated
         self.joint_sub = self.node.create_subscription(
-            JointState, joint_topic, self._joint_callback, qos_profile_sensor_data
+            JointState, '/joint_states', self._joint_callback, qos_profile_sensor_data
         )
         self.imu_sub = self.node.create_subscription(
-            Imu, imu_topic, self._imu_callback, qos_profile_sensor_data
+            Imu, '/imu/data', self._imu_callback, qos_profile_sensor_data
         )
         self.pose_sub = self.node.create_subscription(
-            PoseStamped, pose_topic, self._pose_callback, qos_profile_sensor_data
+            PoseStamped, '/pelvis/pose', self._pose_callback, qos_profile_sensor_data
         )
 
     def _stop_simulation(self):

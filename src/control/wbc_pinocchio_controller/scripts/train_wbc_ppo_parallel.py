@@ -177,7 +177,7 @@ class BestDistanceCallback(BaseCallback):
         return True
 
 
-def make_env(rank: int, config_path: str, max_steps: int = 1000):
+def make_env(rank: int, config_path: str, max_steps: int = 1000, render_mode: str = None):
     """
     Create a single environment instance with unique ROS2 namespace.
 
@@ -185,8 +185,13 @@ def make_env(rank: int, config_path: str, max_steps: int = 1000):
         rank: Environment index (0-31)
         config_path: Path to base WBC config
         max_steps: Maximum steps per episode
+        render_mode: Render mode ('human' to show viewer, None for headless)
     """
     def _init():
+        # Add staggered delay to avoid simultaneous launches
+        # Each environment waits rank * 2 seconds before starting
+        time.sleep(rank * 2.0)
+
         # Create unique namespace for this robot
         namespace = f"robot_{rank}"
 
@@ -195,6 +200,7 @@ def make_env(rank: int, config_path: str, max_steps: int = 1000):
             config_path=config_path,
             max_steps=max_steps,
             namespace=namespace,  # This will be used for ROS2 topics
+            render_mode=render_mode,  # Enable viewer if requested
         )
 
         # Wrap with Monitor for episode statistics
@@ -206,27 +212,49 @@ def make_env(rank: int, config_path: str, max_steps: int = 1000):
 
 def train_parallel(
     total_timesteps: int = 100_000,
-    num_envs: int = 32,
+    num_envs: int = 4,
     save_dir: str = "models/wbc_ppo_parallel",
     learning_rate: float = 3e-4,
     device: str = "cuda",
     resume: str = None,
+    render: bool = False,
 ):
     """
-    Train with multiple parallel environments (32 robots simultaneously).
+    Train with multiple parallel environments.
 
     Args:
         total_timesteps: Total training timesteps
-        num_envs: Number of parallel environments (default: 32)
+        num_envs: Number of parallel environments (default: 4, max recommended: 8)
         save_dir: Directory to save models
         learning_rate: Learning rate for PPO
         device: Device to use (cuda/cpu)
         resume: Path to model to resume from
+        render: Enable MuJoCo viewer for all robots
     """
 
     print("=" * 70)
-    print("🚀 WBC PPO Parallel Training - 32 Robots")
+    print("🚀 WBC PPO Parallel Training")
     print("=" * 70)
+
+    # Rendering validation
+    if render:
+        print(f"🎮 MuJoCo Viewer: ENABLED for ALL {num_envs} robots")
+        print(f"📺 You will see {num_envs} separate viewer windows!")
+        if num_envs > 4:
+            print(f"⚠️  WARNING: {num_envs} viewer windows will be VERY resource-intensive!")
+            print(f"⚠️  Each robot has its own MuJoCo viewer window")
+            print(f"⚠️  RECOMMENDATION: Use --num-envs 2-4 for better visibility")
+            print(f"⚠️  Press Ctrl+C now to reduce --num-envs, or wait 5s to continue...")
+            time.sleep(5)
+    else:
+        # Validate number of environments for headless training
+        if num_envs > 8:
+            print(f"⚠️  WARNING: {num_envs} parallel environments is VERY resource-intensive!")
+            print(f"⚠️  Each environment launches a full ROS2 + MuJoCo simulation")
+            print(f"⚠️  Estimated RAM: ~{num_envs * 2}GB, CPU: ~{num_envs * 6}%")
+            print(f"⚠️  RECOMMENDATION: Start with 2-4 environments for testing")
+            print(f"⚠️  Press Ctrl+C now if you want to reduce --num-envs")
+            time.sleep(5)
 
     # Check GPU
     if device == "cuda" and not torch.cuda.is_available():
@@ -240,6 +268,7 @@ def train_parallel(
     print(f"📊 Total timesteps: {total_timesteps:,}")
     print(f"🎯 Goal: Maximize walking distance without falling")
     print(f"🔧 Tuning: 8 balance/IMU gains only")
+    print(f"⏱️  Staggered start: {num_envs * 2}s total delay")
     print("=" * 70)
 
     save_dir = Path(save_dir)
@@ -250,11 +279,14 @@ def train_parallel(
     config_path = Path(__file__).parent.parent / "config" / "wbc_controller.yaml"
 
     # Create parallel environments
-    print(f"\n🔨 Creating {num_envs} parallel environments...")
-    env_fns = [make_env(i, str(config_path), max_steps=1000) for i in range(num_envs)]
+    print(f"\n🔨 Creating {num_envs} environment(s)...")
+    render_mode = 'human' if render else None
+    env_fns = [make_env(i, str(config_path), max_steps=1000, render_mode=render_mode) for i in range(num_envs)]
 
-    # Use SubprocVecEnv for true parallelism
-    print(f"🚀 Launching {num_envs} subprocesses...")
+    # Use SubprocVecEnv for parallel execution
+    print(f"🚀 Launching {num_envs} subprocess(es)...")
+    if render:
+        print(f"   Each with its own MuJoCo viewer window!")
     env = SubprocVecEnv(env_fns, start_method='spawn')
 
     # Load or create VecNormalize
@@ -371,7 +403,7 @@ def train_parallel(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Parallel WBC PPO training with 32 robots"
+        description="Parallel WBC PPO training with multiple robots"
     )
     parser.add_argument(
         "--timesteps",
@@ -382,8 +414,8 @@ def main():
     parser.add_argument(
         "--num-envs",
         type=int,
-        default=32,
-        help="Number of parallel robots (default: 32)",
+        default=4,
+        help="Number of parallel robots (default: 4, recommended max: 8)",
     )
     parser.add_argument(
         "--lr",
@@ -410,6 +442,11 @@ def main():
         default=None,
         help="Path to model to resume training from",
     )
+    parser.add_argument(
+        "--render",
+        action="store_true",
+        help="Enable MuJoCo viewer to watch training (shows all robots)",
+    )
 
     args = parser.parse_args()
 
@@ -427,6 +464,7 @@ def main():
         learning_rate=args.lr,
         device=args.device,
         resume=args.resume,
+        render=args.render,
     )
 
 
