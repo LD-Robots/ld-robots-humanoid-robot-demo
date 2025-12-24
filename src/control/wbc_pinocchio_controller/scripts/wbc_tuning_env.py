@@ -61,6 +61,38 @@ class WbcTuningEnv(gym.Env):
             if not Path(self.config_path).exists():
                 import shutil
                 shutil.copy(base_config, self.config_path)
+            # Ensure namespaced node key and relative topics for namespace support
+            with open(self.config_path, 'r') as f:
+                config = yaml.safe_load(f) or {}
+            desired_node_key = f"/{namespace}/wbc_controller"
+            node_key_updated = False
+            if desired_node_key not in config:
+                if 'wbc_controller' in config:
+                    config[desired_node_key] = config.pop('wbc_controller')
+                    node_key_updated = True
+                elif config:
+                    first_key = next(iter(config.keys()))
+                    config[desired_node_key] = config.pop(first_key)
+                    node_key_updated = True
+                else:
+                    config[desired_node_key] = {'ros__parameters': {}}
+                    node_key_updated = True
+            wbc_params = config[desired_node_key].setdefault('ros__parameters', {})
+            # Remove leading '/' to make topics relative (will be namespaced)
+            desired_topics = {
+                'target_positions_topic': 'target_positions',
+                'joint_states_topic': 'joint_states',
+                'imu_topic': 'imu/data',
+                'base_pose_topic': 'pelvis/pose',
+            }
+            updated = False
+            for key, value in desired_topics.items():
+                if wbc_params.get(key) != value:
+                    wbc_params[key] = value
+                    updated = True
+            if updated or node_key_updated:
+                with open(self.config_path, 'w') as f:
+                    yaml.dump(config, f, default_flow_style=False, sort_keys=False)
         else:
             self.config_path = config_path or str(self.pkg_path / "config" / "wbc_controller.yaml")
 
@@ -224,10 +256,7 @@ class WbcTuningEnv(gym.Env):
 
     def _load_baseline_config(self) -> np.ndarray:
         """Load current config values as baseline for relative adjustments."""
-        with open(self.config_path, 'r') as f:
-            config = yaml.safe_load(f)
-
-        wbc_params = config['wbc_controller']['ros__parameters']
+        _config, wbc_params, _node_key = self._load_config_params()
 
         # Extract all 39 tunable parameters in order
         baseline = np.array([
@@ -287,6 +316,25 @@ class WbcTuningEnv(gym.Env):
         print(f"✓ Loaded baseline config with {len(baseline)} parameters")
         return baseline
 
+    def _load_config_params(self):
+        """Load config and return (config, ros__parameters dict, node key)."""
+        with open(self.config_path, 'r') as f:
+            config = yaml.safe_load(f) or {}
+
+        if 'wbc_controller' in config:
+            node_key = 'wbc_controller'
+            params = config[node_key].get('ros__parameters', {})
+            return config, params, node_key
+
+        for node_key, node_val in config.items():
+            if not isinstance(node_val, dict):
+                continue
+            params = node_val.get('ros__parameters')
+            if isinstance(params, dict):
+                return config, params, node_key
+
+        raise KeyError("Missing wbc_controller ros__parameters in config")
+
     def _apply_config(self, params: np.ndarray):
         """
         Apply RL action to WBC config file.
@@ -296,15 +344,13 @@ class WbcTuningEnv(gym.Env):
         actual_values = self.baseline_params * params
 
         # Read current config
-        with open(self.config_path, 'r') as f:
-            config = yaml.safe_load(f)
+        config, wbc_params, node_key = self._load_config_params()
 
         # Backup on first call
         if self.backup_config is None:
             self.backup_config = config.copy()
 
         # Update ALL tunable parameters (39 params)
-        wbc_params = config['wbc_controller']['ros__parameters']
 
         # Timing
         wbc_params['hold_enter_duration'] = float(actual_values[0])
@@ -369,39 +415,48 @@ class WbcTuningEnv(gym.Env):
         wbc_params['filter_alpha'] = float(actual_values[37])
         wbc_params['support_center_x_offset'] = float(actual_values[38])
 
+        config[node_key]['ros__parameters'] = wbc_params
         # Write updated config
         with open(self.config_path, 'w') as f:
             yaml.dump(config, f, default_flow_style=False, sort_keys=False)
 
     def _start_simulation(self):
-        """Launch ROS2 simulation with current config."""
+        """Launch ROS2 simulation with current config and unique namespace."""
         # Kill any existing simulation
         self._stop_simulation()
 
         # Determine if viewer should be enabled based on render_mode
         use_viewer = 'true' if self.render_mode == 'human' else 'false'
 
-        # Launch MuJoCo + WBC
+        # Build launch command with namespace support
         launch_cmd = [
             'ros2', 'launch',
             'wbc_pinocchio_controller', 'wbc_full_mujoco.launch.py',
             f'use_viewer:={use_viewer}',
-            'use_rviz:=false'  # RViz disabled for RL training
+            'use_rviz:=false',
+            f'wbc_config:={self.config_path}',
         ]
 
-        # Note: Namespace support requires launch file modifications
-        # For now, parallel environments will share topics (sequential execution)
-        # TODO: Add namespace support to launch file for true parallel execution
+        # Add namespace parameter if specified
+        if self.namespace:
+            launch_cmd.append(f'namespace:={self.namespace}')
+
+        # Launch the simulation (capture output to log file for debugging)
+        log_dir = Path("/tmp/wbc_training_logs")
+        log_dir.mkdir(exist_ok=True)
+        log_file = log_dir / f"{self.namespace or 'default'}_launch.log"
+        log_f = open(log_file, 'w')
 
         self.sim_process = subprocess.Popen(
             launch_cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stdout=log_f,
+            stderr=subprocess.STDOUT,  # Redirect stderr to stdout
             preexec_fn=os.setsid,
         )
 
         # Wait for nodes to start (longer timeout for parallel environments)
-        wait_time = 5.0 if self.namespace else 3.0
+        # Increased timeout to ensure all ROS2 nodes are ready
+        wait_time = 8.0 if self.namespace else 5.0
         time.sleep(wait_time)
         if self.sim_process.poll() is not None:
             try:
@@ -417,21 +472,28 @@ class WbcTuningEnv(gym.Env):
             print("WARN: ROS2 launch exited early; no simulation process running")
             self.no_data = True
 
-        # Create ROS2 subscribers
-        # Use unique node name for parallel environments, but same topics
+        # Create ROS2 subscribers with namespaced topics
         node_name = f'wbc_rl_env_{self.namespace}' if self.namespace else 'wbc_rl_env'
         self.node = rclpy.create_node(node_name)
 
-        # Topic names (not namespaced yet - requires launch file support)
-        # TODO: Use namespaced topics when launch file is updated
+        # Topic names - use namespace if specified for proper isolation
+        if self.namespace:
+            joint_topic = f'/{self.namespace}/joint_states'
+            imu_topic = f'/{self.namespace}/imu/data'
+            pose_topic = f'/{self.namespace}/pelvis/pose'
+        else:
+            joint_topic = '/joint_states'
+            imu_topic = '/imu/data'
+            pose_topic = '/pelvis/pose'
+
         self.joint_sub = self.node.create_subscription(
-            JointState, '/joint_states', self._joint_callback, qos_profile_sensor_data
+            JointState, joint_topic, self._joint_callback, qos_profile_sensor_data
         )
         self.imu_sub = self.node.create_subscription(
-            Imu, '/imu/data', self._imu_callback, qos_profile_sensor_data
+            Imu, imu_topic, self._imu_callback, qos_profile_sensor_data
         )
         self.pose_sub = self.node.create_subscription(
-            PoseStamped, '/pelvis/pose', self._pose_callback, qos_profile_sensor_data
+            PoseStamped, pose_topic, self._pose_callback, qos_profile_sensor_data
         )
 
     def _stop_simulation(self):
@@ -700,40 +762,65 @@ class WbcTuningEnv(gym.Env):
             # Restart simulation
             self._start_simulation()
 
-            # Wait for first observations
-            timeout = 15.0
+            # Wait for first observations with longer timeout for parallel environments
+            timeout = 30.0 if self.namespace else 20.0
             start = time.time()
+            print(f"[{self.namespace or 'default'}] Waiting for ROS2 data (timeout: {timeout}s)...")
+
             while (self.joint_state is None or self.base_pose is None):
                 rclpy.spin_once(self.node, timeout_sec=0.01)
                 if time.time() - start > timeout:
                     break
 
+                # Show progress every 5 seconds
+                elapsed = time.time() - start
+                if int(elapsed) % 5 == 0 and elapsed > 0:
+                    print(f"[{self.namespace or 'default'}] Still waiting... ({elapsed:.0f}s / {timeout}s)")
+
             if self.joint_state is None or self.base_pose is None:
                 print(
-                    f"WARN: No ROS2 data received after reset (retry {retry+1}/{self.max_warmup_retries}) "
-                    f"(joint_state: {self.joint_state is not None}, "
-                    f"base_pose: {self.base_pose is not None}, "
-                    f"imu: {self.imu_msg is not None})"
+                    f"WARN [{self.namespace or 'default'}]: No ROS2 data after {timeout}s (retry {retry+1}/{self.max_warmup_retries})"
+                    f"\n  joint_state: {self.joint_state is not None}"
+                    f"\n  base_pose: {self.base_pose is not None}"
+                    f"\n  imu: {self.imu_msg is not None}"
                 )
                 if self.sim_process is not None and self.sim_process.poll() is not None:
                     self.no_data = True
+                    print(f"WARN [{self.namespace or 'default'}]: Simulation process died!")
+
+                # Stop and retry
+                self._stop_simulation()
+                time.sleep(2.0)
                 continue  # Retry
 
+            print(f"✓ [{self.namespace or 'default'}] ROS2 data received after {time.time() - start:.1f}s")
+
             # Check if robot falls during warmup period
+            print(f"[{self.namespace or 'default'}] Checking warmup stability ({self.warmup_steps} steps)...")
             warmup_ok = self._check_warmup_stability()
+
             if warmup_ok:
                 # Success! Robot is stable during warmup
+                print(f"✅ [{self.namespace or 'default'}] Warmup successful!")
                 break
             else:
                 if retry < self.max_warmup_retries - 1:
-                    print(f"⚠️  Robot fell during warmup, retrying ({retry+1}/{self.max_warmup_retries})...")
+                    print(f"⚠️  [{self.namespace or 'default'}] Robot fell during warmup!")
+                    print(f"   Retrying ({retry+2}/{self.max_warmup_retries})...")
                     self._stop_simulation()
-                    time.sleep(1.0)  # Brief pause before retry
+                    time.sleep(2.0)  # Pause before retry
                 else:
-                    print(f"❌ Robot failed warmup after {self.max_warmup_retries} retries")
+                    print(f"❌ [{self.namespace or 'default'}] Robot failed warmup after {self.max_warmup_retries} retries")
+                    print(f"   Continuing anyway - will likely fall quickly...")
 
         obs = self._get_observation()
-        info = {'warmup_retries': retry + 1 if retry < self.max_warmup_retries else self.max_warmup_retries}
+
+        # Track actual number of retries attempted
+        actual_retries = retry + 1 if warmup_ok or retry < self.max_warmup_retries - 1 else self.max_warmup_retries
+        info = {
+            'warmup_retries': actual_retries,
+            'warmup_success': warmup_ok if 'warmup_ok' in locals() else False
+        }
 
         return obs, info
 
@@ -864,16 +951,15 @@ class WbcGainsTuningEnv(WbcTuningEnv):
         """Apply only gain parameters as multipliers to the baseline."""
         actual_values = self.baseline_params[self.GAIN_INDICES] * params
 
-        with open(self.config_path, 'r') as f:
-            config = yaml.safe_load(f)
+        config, wbc_params, node_key = self._load_config_params()
 
         if self.backup_config is None:
             self.backup_config = config.copy()
 
-        wbc_params = config['wbc_controller']['ros__parameters']
         for key, value in zip(self.GAIN_KEYS, actual_values):
             wbc_params[key] = float(value)
 
+        config[node_key]['ros__parameters'] = wbc_params
         with open(self.config_path, 'w') as f:
             yaml.dump(config, f, default_flow_style=False, sort_keys=False)
 

@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
-"""Launch MuJoCo and WBC controller with startup delay."""
+"""Launch MuJoCo and WBC controller with startup delay and namespace support."""
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, TimerAction
+from launch.actions import DeclareLaunchArgument, TimerAction, GroupAction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition
-from launch_ros.actions import Node
+from launch_ros.actions import Node, PushRosNamespace
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    # Namespace argument for parallel robot isolation
+    namespace_arg = DeclareLaunchArgument(
+        'namespace',
+        default_value='',
+        description='Namespace for all nodes (empty = no namespace, e.g., robot_0)'
+    )
+
     delay_arg = DeclareLaunchArgument(
         'controller_delay',
         default_value='0.0',
@@ -30,6 +37,15 @@ def generate_launch_description():
         'use_rviz',
         default_value='true',
         description='Whether to launch RViz'
+    )
+    wbc_config_arg = DeclareLaunchArgument(
+        'wbc_config',
+        default_value=PathJoinSubstitution([
+            FindPackageShare('wbc_pinocchio_controller'),
+            'config',
+            'wbc_controller.yaml'
+        ]),
+        description='WBC controller YAML config path'
     )
     model_path_arg = DeclareLaunchArgument(
         'model_path',
@@ -85,6 +101,9 @@ def generate_launch_description():
         executable='mujoco_simulator.py',
         name='mujoco_simulator',
         output='screen',
+        remappings=[
+            ('clock', '/clock'),
+        ],
         parameters=[{
             'model_path': LaunchConfiguration('model_path'),
             'use_viewer': LaunchConfiguration('use_viewer'),
@@ -99,11 +118,7 @@ def generate_launch_description():
         }]
     )
 
-    params_file = PathJoinSubstitution([
-        FindPackageShare('wbc_pinocchio_controller'),
-        'config',
-        'wbc_controller.yaml'
-    ])
+    params_file = LaunchConfiguration('wbc_config')
 
     controller_node = Node(
         package='wbc_pinocchio_controller',
@@ -116,6 +131,14 @@ def generate_launch_description():
                 'use_sim_time': True,
                 'walking_enabled': LaunchConfiguration('walking_enabled')
             }
+        ],
+        remappings=[
+            # Remap all topics to namespaced versions
+            ('/target_positions', 'target_positions'),
+            ('/joint_states', 'joint_states'),
+            ('/imu/data', 'imu/data'),
+            ('/torso/pose', 'torso/pose'),
+            ('/pelvis/pose', 'pelvis/pose'),
         ]
     )
     mujoco_controller = Node(
@@ -150,11 +173,23 @@ def generate_launch_description():
         parameters=[{'use_sim_time': True}]
     )
 
+    # Group all nodes with namespace
+    namespaced_nodes = GroupAction(
+        actions=[
+            PushRosNamespace(LaunchConfiguration('namespace')),
+            mujoco_simulator,
+            mujoco_controller,
+            controller_delayed,
+        ]
+    )
+
     return LaunchDescription([
+        namespace_arg,
         delay_arg,
         walking_enabled_arg,
         use_viewer_arg,
         use_rviz_arg,
+        wbc_config_arg,
         model_path_arg,
         publish_rate_arg,
         realtime_factor_arg,
@@ -163,8 +198,6 @@ def generate_launch_description():
         hold_start_duration_arg,
         initial_pose_yaml_arg,
         initial_pose_key_arg,
-        mujoco_simulator,
-        mujoco_controller,
-        controller_delayed,
-        rviz_node,
+        namespaced_nodes,
+        rviz_node,  # RViz stays in root namespace
     ])
