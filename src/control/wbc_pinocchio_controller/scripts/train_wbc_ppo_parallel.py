@@ -169,19 +169,12 @@ class BestDistanceCallback(BaseCallback):
             fell = info.get("fell", False)
             survived = not fell
 
-            # Save if: first to survive OR (survived and further than previous best) OR (both fell but further)
+            # Save only if distance strictly improves
             should_update = False
             reason = ""
-
-            if survived and not self.best_survived:
-                should_update = True
-                reason = "first survival"
-            elif survived and self.best_survived and distance > self.best_distance:
+            if distance > self.best_distance:
                 should_update = True
                 reason = f"new distance record: {distance:.3f}m > {self.best_distance:.3f}m"
-            elif not survived and not self.best_survived and distance > self.best_distance:
-                should_update = True
-                reason = f"furthest among fallen: {distance:.3f}m"
 
             if should_update:
                 self.best_distance = distance
