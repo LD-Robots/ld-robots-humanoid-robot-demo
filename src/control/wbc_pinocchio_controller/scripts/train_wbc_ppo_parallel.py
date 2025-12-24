@@ -14,6 +14,7 @@ from pathlib import Path
 import torch
 import signal
 import numpy as np
+import yaml
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
@@ -94,6 +95,7 @@ class BestDistanceCallback(BaseCallback):
         self.best_distance = 0.0
         self.best_survived = False
         self.best_timestep = 0
+        self.best_config_path = None
 
         # Try to load previous best
         self.stats_file = save_dir / "best_model_stats.txt"
@@ -125,6 +127,36 @@ class BestDistanceCallback(BaseCallback):
             f.write(f"distance={distance:.4f}, survived={survived}, timestep={timestep}\n")
             f.write(f"timestamp={time.strftime('%Y-%m-%d %H:%M:%S')}\n")
 
+    def _save_best_config(self, config_path: str, distance: float):
+        """Save a backup of the config used for the best distance."""
+        if not config_path:
+            return
+        try:
+            with open(config_path, "r") as f:
+                config = yaml.safe_load(f) or {}
+        except Exception as exc:
+            if self.verbose:
+                print(f"⚠️  Could not read config for backup: {exc}")
+            return
+
+        config["_metadata"] = {
+            "best_distance": float(distance),
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "source_config": config_path,
+            "timestep": int(self.best_timestep),
+        }
+
+        backup_path = self.save_dir / "best_config.yaml"
+        try:
+            with open(backup_path, "w") as f:
+                yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+            self.best_config_path = str(backup_path)
+            if self.verbose:
+                print(f"💾 Best config saved: {backup_path}")
+        except Exception as exc:
+            if self.verbose:
+                print(f"⚠️  Could not write best config backup: {exc}")
+
     def _on_step(self) -> bool:
         infos = self.locals.get("infos", [])
         dones = self.locals.get("dones", [])
@@ -155,6 +187,7 @@ class BestDistanceCallback(BaseCallback):
                 self.best_distance = distance
                 self.best_survived = survived
                 self.best_timestep = self.model.num_timesteps
+                self._save_best_config(info.get("config_path", ""), distance)
 
                 best_path = self.save_dir / "best_model"
                 self.model.save(best_path)

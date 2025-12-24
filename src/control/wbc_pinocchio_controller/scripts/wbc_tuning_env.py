@@ -892,6 +892,7 @@ class WbcTuningEnv(gym.Env):
             'fell': self.fell,
             'reason': reason if terminated else '',
             'obs_valid': (self.joint_state is not None and self.base_pose is not None),
+            'config_path': self.config_path,
         }
 
         return obs, reward, terminated, truncated, info
