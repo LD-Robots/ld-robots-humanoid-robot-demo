@@ -127,17 +127,28 @@ class BestDistanceCallback(BaseCallback):
             f.write(f"distance={distance:.4f}, survived={survived}, timestep={timestep}\n")
             f.write(f"timestamp={time.strftime('%Y-%m-%d %H:%M:%S')}\n")
 
-    def _save_best_config(self, config_path: str, distance: float):
+    def _save_best_config(self, config_snapshot, config_path: str, distance: float):
         """Save a backup of the config used for the best distance."""
-        if not config_path:
+        config = None
+        if isinstance(config_snapshot, dict):
+            config = config_snapshot
+        elif config_path:
+            try:
+                with open(config_path, "r") as f:
+                    config = yaml.safe_load(f) or {}
+            except Exception as exc:
+                if self.verbose:
+                    print(f"⚠️  Could not read config for backup: {exc}")
+                return
+        else:
             return
-        try:
-            with open(config_path, "r") as f:
-                config = yaml.safe_load(f) or {}
-        except Exception as exc:
-            if self.verbose:
-                print(f"⚠️  Could not read config for backup: {exc}")
-            return
+
+        # Normalize node key for standalone use (non-namespaced)
+        if "wbc_controller" not in config:
+            for key in list(config.keys()):
+                if isinstance(key, str) and key.endswith("/wbc_controller"):
+                    config["wbc_controller"] = config.pop(key)
+                    break
 
         config["_metadata"] = {
             "best_distance": float(distance),
@@ -180,7 +191,11 @@ class BestDistanceCallback(BaseCallback):
                 self.best_distance = distance
                 self.best_survived = survived
                 self.best_timestep = self.model.num_timesteps
-                self._save_best_config(info.get("config_path", ""), distance)
+                self._save_best_config(
+                    info.get("config_snapshot"),
+                    info.get("config_path", ""),
+                    distance,
+                )
 
                 best_path = self.save_dir / "best_model"
                 self.model.save(best_path)

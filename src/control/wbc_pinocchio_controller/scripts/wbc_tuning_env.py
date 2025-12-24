@@ -12,6 +12,7 @@ import signal
 import os
 import time
 import yaml
+import copy
 from pathlib import Path
 
 import rclpy
@@ -106,11 +107,14 @@ class WbcTuningEnv(gym.Env):
         self.steps_taken = 0
         self.total_distance = 0.0
         self.last_com_x = 0.0
+        self.last_roll = None
+        self.last_pitch = None
         self.no_data = False
         self._logged_joint = False
         self._logged_imu = False
         self._logged_pose = False
         self._first_episode = True
+        self.last_config_snapshot = None
 
         # Track milestone achievements (one-time bonuses)
         self.milestones_achieved = set()
@@ -419,6 +423,7 @@ class WbcTuningEnv(gym.Env):
         # Write updated config
         with open(self.config_path, 'w') as f:
             yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+        self.last_config_snapshot = copy.deepcopy(config)
 
     def _start_simulation(self):
         """Launch ROS2 simulation with current config and unique namespace."""
@@ -640,6 +645,7 @@ class WbcTuningEnv(gym.Env):
         if dx > 0:
             # Increased weight: forward progress is the main goal
             reward += dx * 200.0  # Increased from 100.0
+            reward += 0.2  # Small bonus to keep forward motion preferred
             self.total_distance += dx
         elif dx < -0.001:  # Small penalty for moving backwards
             reward -= abs(dx) * 50.0
@@ -668,6 +674,15 @@ class WbcTuningEnv(gym.Env):
             roll_penalty = abs(roll) * 2.0 if abs(roll) > 0.1 else 0.0
             pitch_penalty = abs(pitch) * 2.0 if abs(pitch) > 0.1 else 0.0
             reward -= (roll_penalty + pitch_penalty)
+
+            # Penalize oscillations using angular velocity and roll/pitch changes
+            roll_rate = float(self.imu_msg.angular_velocity.x)
+            pitch_rate = float(self.imu_msg.angular_velocity.y)
+            reward -= (abs(roll_rate) + abs(pitch_rate)) * 0.2
+            if self.last_roll is not None and self.last_pitch is not None:
+                reward -= (abs(roll - self.last_roll) + abs(pitch - self.last_pitch)) * 0.2
+            self.last_roll = roll
+            self.last_pitch = pitch
 
             # Bonus for being very stable
             if abs(roll) < 0.05 and abs(pitch) < 0.05:
@@ -749,6 +764,8 @@ class WbcTuningEnv(gym.Env):
             self.steps_taken = 0
             self.total_distance = 0.0
             self.last_com_x = 0.0
+            self.last_roll = None
+            self.last_pitch = None
             self.joint_state = None
             self.imu_msg = None
             self.base_pose = None
@@ -894,6 +911,8 @@ class WbcTuningEnv(gym.Env):
             'obs_valid': (self.joint_state is not None and self.base_pose is not None),
             'config_path': self.config_path,
         }
+        if terminated:
+            info['config_snapshot'] = copy.deepcopy(self.last_config_snapshot)
 
         return obs, reward, terminated, truncated, info
 
@@ -965,6 +984,7 @@ class WbcGainsTuningEnv(WbcTuningEnv):
         config[node_key]['ros__parameters'] = wbc_params
         with open(self.config_path, 'w') as f:
             yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+        self.last_config_snapshot = copy.deepcopy(config)
 
 
 if __name__ == "__main__":
