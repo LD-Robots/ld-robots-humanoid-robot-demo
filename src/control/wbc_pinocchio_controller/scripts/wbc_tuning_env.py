@@ -33,6 +33,7 @@ class WbcTuningEnv(gym.Env):
         warmup_steps: int = 50,
         allow_timeout: bool = False,
         render_mode: Optional[str] = None,
+        namespace: str = "",  # ROS2 namespace for parallel environments
     ):
         super().__init__()
 
@@ -41,6 +42,7 @@ class WbcTuningEnv(gym.Env):
         self.allow_timeout = allow_timeout
         self.render_mode = render_mode
         self.step_count = 0
+        self.namespace = namespace  # Store namespace
 
         # ROS2 setup
         if not rclpy.ok():
@@ -48,7 +50,20 @@ class WbcTuningEnv(gym.Env):
 
         # Paths
         self.pkg_path = Path(__file__).parent.parent
-        self.config_path = config_path or str(self.pkg_path / "config" / "wbc_controller.yaml")
+
+        # Use unique config file for each namespace to avoid conflicts
+        if namespace:
+            config_dir = self.pkg_path / "config" / "parallel"
+            config_dir.mkdir(exist_ok=True)
+            self.config_path = str(config_dir / f"wbc_controller_{namespace}.yaml")
+            # Copy base config if it doesn't exist
+            base_config = config_path or str(self.pkg_path / "config" / "wbc_controller.yaml")
+            if not Path(self.config_path).exists():
+                import shutil
+                shutil.copy(base_config, self.config_path)
+        else:
+            self.config_path = config_path or str(self.pkg_path / "config" / "wbc_controller.yaml")
+
         self.backup_config = None
 
         # State tracking
@@ -63,6 +78,14 @@ class WbcTuningEnv(gym.Env):
         self._logged_joint = False
         self._logged_imu = False
         self._logged_pose = False
+        self._first_episode = True
+
+        # Track milestone achievements (one-time bonuses)
+        self.milestones_achieved = set()
+
+        # Retry logic for early falls during warmup
+        self.max_warmup_retries = 3  # Maximum retries if robot falls during warmup
+        self.current_params = None   # Store current params for retry
 
         # Load current config values as baseline
         self.baseline_params = self._load_baseline_config()
@@ -355,12 +378,17 @@ class WbcTuningEnv(gym.Env):
         # Kill any existing simulation
         self._stop_simulation()
 
-        # Launch MuJoCo + WBC
+        # Launch MuJoCo + WBC with namespace if specified
         launch_cmd = [
             'ros2', 'launch',
             'wbc_pinocchio_controller', 'wbc_full_mujoco.launch.py',
             'use_viewer:=false', 'use_rviz:=false'
         ]
+
+        # Add namespace to launch if specified
+        if self.namespace:
+            launch_cmd.append(f'namespace:={self.namespace}')
+            launch_cmd.append(f'config_file:={self.config_path}')
 
         self.sim_process = subprocess.Popen(
             launch_cmd,
@@ -385,16 +413,23 @@ class WbcTuningEnv(gym.Env):
             print("WARN: ROS2 launch exited early; no simulation process running")
             self.no_data = True
 
-        # Create ROS2 subscribers
-        self.node = rclpy.create_node('wbc_rl_env')
+        # Create ROS2 subscribers with namespace
+        node_name = f'wbc_rl_env_{self.namespace}' if self.namespace else 'wbc_rl_env'
+        self.node = rclpy.create_node(node_name)
+
+        # Topic names with namespace
+        joint_topic = f'/{self.namespace}/joint_states' if self.namespace else '/joint_states'
+        imu_topic = f'/{self.namespace}/imu/data' if self.namespace else '/imu/data'
+        pose_topic = f'/{self.namespace}/pelvis/pose' if self.namespace else '/pelvis/pose'
+
         self.joint_sub = self.node.create_subscription(
-            JointState, '/joint_states', self._joint_callback, qos_profile_sensor_data
+            JointState, joint_topic, self._joint_callback, qos_profile_sensor_data
         )
         self.imu_sub = self.node.create_subscription(
-            Imu, '/imu/data', self._imu_callback, qos_profile_sensor_data
+            Imu, imu_topic, self._imu_callback, qos_profile_sensor_data
         )
         self.pose_sub = self.node.create_subscription(
-            PoseStamped, '/pelvis/pose', self._pose_callback, qos_profile_sensor_data
+            PoseStamped, pose_topic, self._pose_callback, qos_profile_sensor_data
         )
 
     def _stop_simulation(self):
@@ -482,7 +517,7 @@ class WbcTuningEnv(gym.Env):
 
     def _check_termination(self) -> Tuple[bool, str]:
         """Check if episode should terminate."""
-        if self.no_data:
+        if self.no_data and self.step_count > self.warmup_steps:
             return True, "no_data"
 
         if self.step_count <= self.warmup_steps:
@@ -516,97 +551,224 @@ class WbcTuningEnv(gym.Env):
         return False, ""
 
     def _compute_reward(self) -> float:
-        """Compute reward for current state."""
+        """
+        Compute reward for current state.
+
+        Reward structure optimized to encourage:
+        1. Forward progress (main objective)
+        2. Stability and upright posture
+        3. Straight walking without drift
+        4. Survival without excessive penalties
+        """
         if self.step_count <= self.warmup_steps:
             return 0.0
 
         reward = 0.0
 
         if self.base_pose is None:
-            return -10.0
+            return -5.0  # Reduced from -10.0
 
-        # 1. Forward progress reward
+        # 1. Forward progress reward (PRIMARY OBJECTIVE)
         current_x = self.base_pose.pose.position.x
         dx = current_x - self.last_com_x
         if dx > 0:
-            reward += dx * 100.0  # Scale to make significant
+            # Increased weight: forward progress is the main goal
+            reward += dx * 200.0  # Increased from 100.0
             self.total_distance += dx
+        elif dx < -0.001:  # Small penalty for moving backwards
+            reward -= abs(dx) * 50.0
         self.last_com_x = current_x
 
-        # 2. Upright reward (penalize tipping)
+        # 2. Upright posture reward (INCREASED)
         z = self.base_pose.pose.position.z
         if z > 0.45:  # Good height
-            reward += 0.5
+            reward += 2.0  # Increased from 0.5
+        elif z > 0.40:  # Still acceptable
+            reward += 1.0
+        else:  # Getting too low
+            reward -= (0.40 - z) * 10.0
 
-        # 3. Step count reward
-        # (Would need phase tracking from WBC controller)
-        # reward += self.steps_taken * 2.0
+        # 3. Orientation stability (roll/pitch)
+        if self.imu_msg is not None:
+            quat = self.imu_msg.orientation
+            # Calculate roll and pitch
+            roll = np.arctan2(
+                2.0 * (quat.w * quat.x + quat.y * quat.z),
+                1.0 - 2.0 * (quat.x**2 + quat.y**2)
+            )
+            pitch = np.arcsin(np.clip(2.0 * (quat.w * quat.y - quat.z * quat.x), -1.0, 1.0))
 
-        # 4. Stability reward (penalize high velocities)
+            # Reward for staying upright (small deviations OK)
+            roll_penalty = abs(roll) * 2.0 if abs(roll) > 0.1 else 0.0
+            pitch_penalty = abs(pitch) * 2.0 if abs(pitch) > 0.1 else 0.0
+            reward -= (roll_penalty + pitch_penalty)
+
+            # Bonus for being very stable
+            if abs(roll) < 0.05 and abs(pitch) < 0.05:
+                reward += 0.5
+
+        # 4. Joint velocity smoothness (MODIFIED - don't penalize walking)
         if self.joint_state is not None and len(self.joint_state.velocity) >= 12:
-            vel_penalty = np.sum(np.abs(self.joint_state.velocity[:12]))
-            reward -= vel_penalty * 0.01
+            # Only penalize EXCESSIVE velocities (> 2 rad/s)
+            vel_array = np.array(self.joint_state.velocity[:12])
+            excessive_vel = np.sum(np.maximum(0, np.abs(vel_array) - 2.0))
+            reward -= excessive_vel * 0.5  # Reduced penalty
 
-        # 5. Fell penalty
+        # 5. Straight-line bonus (lateral drift and yaw)
+        y = self.base_pose.pose.position.y
+        reward -= abs(y) * 3.0  # Reduced from 5.0
+
+        quat = self.base_pose.pose.orientation
+        yaw = np.arctan2(
+            2.0 * (quat.w * quat.z + quat.x * quat.y),
+            1.0 - 2.0 * (quat.y**2 + quat.z**2)
+        )
+        reward -= abs(yaw) * 1.0
+
+        # Bonus for staying centered and aligned
+        if abs(y) < 0.05 and abs(yaw) < 0.1:
+            reward += 1.0
+
+        # 6. Fell penalty (REDUCED - don't dominate the reward)
         if self.fell:
-            reward -= 100.0
+            reward -= 20.0  # Reduced from 100.0 - still bad but not overwhelming
 
-        # 6. Bonus for surviving
-        reward += 0.1
+        # 7. Survival bonus (INCREASED - encourage longevity)
+        reward += 0.5  # Increased from 0.1
+
+        # 8. Distance milestone bonuses (ONE-TIME only!)
+        # Check and award each milestone only once per episode
+        if self.total_distance > 0.5 and 0.5 not in self.milestones_achieved:
+            reward += 10.0
+            self.milestones_achieved.add(0.5)
+            if self.verbose if hasattr(self, 'verbose') else False:
+                print(f"🎯 Milestone: 0.5m reached!")
+
+        if self.total_distance > 1.0 and 1.0 not in self.milestones_achieved:
+            reward += 25.0
+            self.milestones_achieved.add(1.0)
+            if self.verbose if hasattr(self, 'verbose') else False:
+                print(f"🎯 Milestone: 1.0m reached!")
+
+        if self.total_distance > 2.0 and 2.0 not in self.milestones_achieved:
+            reward += 50.0
+            self.milestones_achieved.add(2.0)
+            if self.verbose if hasattr(self, 'verbose') else False:
+                print(f"🎯 Milestone: 2.0m reached!")
 
         return reward
 
     def reset(self, seed=None, options=None) -> Tuple[np.ndarray, Dict]:
-        """Reset environment for new episode."""
+        """Reset environment for new episode with retry logic for early falls."""
         super().reset(seed=seed)
 
-        # Reset state
-        self.step_count = 0
-        self.fell = False
-        self.steps_taken = 0
-        self.total_distance = 0.0
-        self.last_com_x = 0.0
-        self.joint_state = None
-        self.imu_msg = None
-        self.base_pose = None
-        self.no_data = False
-        self._logged_joint = False
-        self._logged_imu = False
-        self._logged_pose = False
-
-        # Apply new random or given config
+        # Determine params for this episode
         if options and 'params' in options:
             params = options['params']
+        elif self._first_episode:
+            params = np.ones(self.action_space.shape, dtype=np.float32)
+            self._first_episode = False
         else:
             # Sample random params from action space
             params = self.action_space.sample()
 
-        self._apply_config(params)
+        # Store params for potential retry
+        self.current_params = params.copy()
 
-        # Restart simulation
-        self._start_simulation()
+        # Try to reset with retry logic for warmup failures
+        for retry in range(self.max_warmup_retries):
+            # Reset state
+            self.step_count = 0
+            self.fell = False
+            self.steps_taken = 0
+            self.total_distance = 0.0
+            self.last_com_x = 0.0
+            self.joint_state = None
+            self.imu_msg = None
+            self.base_pose = None
+            self.no_data = False
+            self._logged_joint = False
+            self._logged_imu = False
+            self._logged_pose = False
+            self.milestones_achieved = set()  # Reset milestones for new episode
 
-        # Wait for first observations
-        timeout = 15.0
-        start = time.time()
-        while (self.joint_state is None or self.base_pose is None):
-            rclpy.spin_once(self.node, timeout_sec=0.01)
-            if time.time() - start > timeout:
+            # Apply config
+            self._apply_config(self.current_params)
+
+            # Restart simulation
+            self._start_simulation()
+
+            # Wait for first observations
+            timeout = 15.0
+            start = time.time()
+            while (self.joint_state is None or self.base_pose is None):
+                rclpy.spin_once(self.node, timeout_sec=0.01)
+                if time.time() - start > timeout:
+                    break
+
+            if self.joint_state is None or self.base_pose is None:
+                print(
+                    f"WARN: No ROS2 data received after reset (retry {retry+1}/{self.max_warmup_retries}) "
+                    f"(joint_state: {self.joint_state is not None}, "
+                    f"base_pose: {self.base_pose is not None}, "
+                    f"imu: {self.imu_msg is not None})"
+                )
+                if self.sim_process is not None and self.sim_process.poll() is not None:
+                    self.no_data = True
+                continue  # Retry
+
+            # Check if robot falls during warmup period
+            warmup_ok = self._check_warmup_stability()
+            if warmup_ok:
+                # Success! Robot is stable during warmup
                 break
-        if self.joint_state is None or self.base_pose is None:
-            print(
-                "WARN: No ROS2 data received after reset "
-                f"(joint_state: {self.joint_state is not None}, "
-                f"base_pose: {self.base_pose is not None}, "
-                f"imu: {self.imu_msg is not None})"
-            )
-            if self.sim_process is not None and self.sim_process.poll() is not None:
-                self.no_data = True
+            else:
+                if retry < self.max_warmup_retries - 1:
+                    print(f"⚠️  Robot fell during warmup, retrying ({retry+1}/{self.max_warmup_retries})...")
+                    self._stop_simulation()
+                    time.sleep(1.0)  # Brief pause before retry
+                else:
+                    print(f"❌ Robot failed warmup after {self.max_warmup_retries} retries")
 
         obs = self._get_observation()
-        info = {}
+        info = {'warmup_retries': retry + 1 if retry < self.max_warmup_retries else self.max_warmup_retries}
 
         return obs, info
+
+    def _check_warmup_stability(self) -> bool:
+        """
+        Check if robot remains stable during warmup period.
+        Returns True if stable, False if fell.
+        """
+        warmup_start = time.time()
+        warmup_duration = self.warmup_steps / 100.0  # Assuming 100Hz control
+
+        while time.time() - warmup_start < warmup_duration:
+            rclpy.spin_once(self.node, timeout_sec=0.01)
+
+            # Check if robot fell
+            if self.base_pose is not None:
+                z = self.base_pose.pose.position.z
+                if z < 0.2:  # Fell down
+                    return False
+
+                # Check orientation
+                if self.imu_msg is not None:
+                    quat = self.imu_msg.orientation
+                    roll = np.arctan2(
+                        2.0 * (quat.w * quat.x + quat.y * quat.z),
+                        1.0 - 2.0 * (quat.x**2 + quat.y**2)
+                    )
+                    pitch = np.arcsin(np.clip(2.0 * (quat.w * quat.y - quat.z * quat.x), -1.0, 1.0))
+
+                    if abs(roll) > 0.5 or abs(pitch) > 0.5:  # Tipped over
+                        return False
+
+            time.sleep(0.01)  # 100Hz check rate
+
+        # Warmup completed successfully
+        self.step_count = self.warmup_steps  # Mark warmup as complete
+        return True
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, Dict]:
         """Execute one environment step."""
@@ -653,6 +815,65 @@ class WbcTuningEnv(gym.Env):
                 yaml.dump(self.backup_config, f, default_flow_style=False)
 
         super().close()
+
+
+class WbcGainsTuningEnv(WbcTuningEnv):
+    """RL environment that tunes only balance/IMU kp/kd gains."""
+
+    GAIN_KEYS = [
+        "balance_kp_pitch",
+        "balance_kd_pitch",
+        "imu_kp_pitch",
+        "imu_kd_pitch",
+        "balance_kp_roll",
+        "balance_kd_roll",
+        "imu_kp_roll",
+        "imu_kd_roll",
+    ]
+    GAIN_INDICES = [23, 24, 25, 26, 27, 28, 29, 30]
+
+    def __init__(
+        self,
+        config_path: str = None,
+        max_steps: int = 1000,
+        warmup_steps: int = 50,
+        allow_timeout: bool = False,
+        render_mode: Optional[str] = None,
+        namespace: str = "",  # ROS2 namespace for parallel environments
+    ):
+        super().__init__(
+            config_path=config_path,
+            max_steps=max_steps,
+            warmup_steps=warmup_steps,
+            allow_timeout=allow_timeout,
+            render_mode=render_mode,
+            namespace=namespace,  # Pass namespace to parent
+        )
+        # Increased action space for better exploration
+        # Was: 0.9-1.1 (±10%) → Now: 0.7-1.3 (±30%)
+        # This allows the agent to explore more parameter variations
+        self.action_space = gym.spaces.Box(
+            low=np.full(len(self.GAIN_KEYS), 0.7, dtype=np.float32),
+            high=np.full(len(self.GAIN_KEYS), 1.3, dtype=np.float32),
+            dtype=np.float32,
+        )
+
+    def _apply_config(self, params: np.ndarray):
+        """Apply only gain parameters as multipliers to the baseline."""
+        actual_values = self.baseline_params[self.GAIN_INDICES] * params
+
+        with open(self.config_path, 'r') as f:
+            config = yaml.safe_load(f)
+
+        if self.backup_config is None:
+            self.backup_config = config.copy()
+
+        wbc_params = config['wbc_controller']['ros__parameters']
+        for key, value in zip(self.GAIN_KEYS, actual_values):
+            wbc_params[key] = float(value)
+
+        with open(self.config_path, 'w') as f:
+            yaml.dump(config, f, default_flow_style=False, sort_keys=False)
 
 
 if __name__ == "__main__":

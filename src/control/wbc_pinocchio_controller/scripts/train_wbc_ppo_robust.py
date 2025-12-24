@@ -34,6 +34,7 @@ class EpisodeInfoCallback(BaseCallback):
         self.episode_count = 0
         self.fell_count = 0
         self.timeout_count = 0
+        self.no_data_count = 0
         self.distance_sum = 0.0
         self.reward_sum = 0.0
         self.step_count = 0
@@ -58,6 +59,8 @@ class EpisodeInfoCallback(BaseCallback):
                 self.fell_count += 1
             if info.get("reason") == "timeout":
                 self.timeout_count += 1
+            if info.get("reason") == "no_data":
+                self.no_data_count += 1
             if "distance" in info:
                 self.distance_sum += float(info["distance"])
         return True
@@ -69,8 +72,47 @@ class EpisodeInfoCallback(BaseCallback):
         if self.episode_count > 0:
             self.logger.record("custom/term_fell_rate", self.fell_count / self.episode_count)
             self.logger.record("custom/term_timeout_rate", self.timeout_count / self.episode_count)
+            self.logger.record("custom/term_no_data_rate", self.no_data_count / self.episode_count)
             self.logger.record("custom/distance_mean", self.distance_sum / self.episode_count)
         self._reset_counters()
+
+
+class BestModelCallback(BaseCallback):
+    """Save best model based on longest episode without falling."""
+
+    def __init__(self, save_dir: Path, verbose: int = 0):
+        super().__init__(verbose)
+        self.save_dir = save_dir
+        self.best_length = -1
+        self.best_survived = False
+
+    def _on_step(self) -> bool:
+        infos = self.locals.get("infos", [])
+        dones = self.locals.get("dones", [])
+        for info, done in zip(infos, dones):
+            if not done:
+                continue
+            fell = info.get("fell", False)
+            survived = not fell
+            length = int(info.get("step_count", 0))
+
+            should_update = False
+            if survived and not self.best_survived:
+                should_update = True
+            elif survived and self.best_survived and length > self.best_length:
+                should_update = True
+            elif not survived and not self.best_survived and length > self.best_length:
+                should_update = True
+
+            if should_update:
+                self.best_length = length
+                self.best_survived = survived
+                best_path = self.save_dir / "best_model"
+                self.model.save(best_path)
+                if self.verbose:
+                    status = "survived" if survived else "fell"
+                    print(f"✓ Best model updated ({status}, length={length})")
+        return True
 
 
 def cleanup_processes():
@@ -196,7 +238,11 @@ def train_batch(
         save_vecnormalize=True,
     )
 
-    callback = CallbackList([checkpoint_callback, EpisodeInfoCallback()])
+    callback = CallbackList([
+        checkpoint_callback,
+        EpisodeInfoCallback(),
+        BestModelCallback(save_dir=save_dir, verbose=1),
+    ])
 
     # Train
     print(f"\n🚀 Starting training for {batch_steps:,} steps...")
