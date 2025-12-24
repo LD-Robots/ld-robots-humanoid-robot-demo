@@ -82,4 +82,4 @@ wbc_controller:
     # Foot frames for support center
     left_foot_frame: left_ankle_roll_link
     right_foot_frame: right_ankle_roll_link
-    support_center_x_offset: -0.001 # NEGATIVE = Target CoM AHEAD of support (forward bias!)
+    support_center_x_offset: -0.0005 # NEGATIVE = Target CoM AHEAD of support (forward bias!)
