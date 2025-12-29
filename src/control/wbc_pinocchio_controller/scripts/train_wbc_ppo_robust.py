@@ -1,0 +1,440 @@
+#!/usr/bin/env python3
+"""
+Robust PPO training with ROS2 environment.
+Trains in small batches with cleanup to avoid blocking issues.
+Uses REAL WBC controller so learned parameters actually work!
+"""
+
+import os
+import sys
+import argparse
+import subprocess
+import time
+from pathlib import Path
+from datetime import datetime
+import torch
+import signal
+
+from stable_baselines3 import PPO
+from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
+from stable_baselines3.common.callbacks import CheckpointCallback, CallbackList, BaseCallback
+from stable_baselines3.common.monitor import Monitor
+
+from wbc_tuning_env import WbcTuningEnv
+
+
+class EpisodeInfoCallback(BaseCallback):
+    """Log episode termination reasons and distance to TensorBoard."""
+
+    def __init__(self, verbose: int = 0):
+        super().__init__(verbose)
+        self._reset_counters()
+
+    def _reset_counters(self):
+        self.episode_count = 0
+        self.fell_count = 0
+        self.timeout_count = 0
+        self.no_data_count = 0
+        self.distance_sum = 0.0
+        self.reward_sum = 0.0
+        self.step_count = 0
+        self.obs_valid_sum = 0
+
+    def _on_step(self) -> bool:
+        infos = self.locals.get("infos", [])
+        dones = self.locals.get("dones", [])
+        rewards = self.locals.get("rewards", [])
+
+        if rewards is not None:
+            self.reward_sum += float(sum(rewards))
+            self.step_count += len(rewards)
+
+        for info, done in zip(infos, dones):
+            if info.get("obs_valid"):
+                self.obs_valid_sum += 1
+            if not done:
+                continue
+            self.episode_count += 1
+            if info.get("fell"):
+                self.fell_count += 1
+            if info.get("reason") == "timeout":
+                self.timeout_count += 1
+            if info.get("reason") == "no_data":
+                self.no_data_count += 1
+            if "distance" in info:
+                self.distance_sum += float(info["distance"])
+        return True
+
+    def _on_rollout_end(self) -> None:
+        if self.step_count > 0:
+            self.logger.record("custom/reward_per_step_mean", self.reward_sum / self.step_count)
+            self.logger.record("custom/obs_valid_rate", self.obs_valid_sum / self.step_count)
+        if self.episode_count > 0:
+            self.logger.record("custom/term_fell_rate", self.fell_count / self.episode_count)
+            self.logger.record("custom/term_timeout_rate", self.timeout_count / self.episode_count)
+            self.logger.record("custom/term_no_data_rate", self.no_data_count / self.episode_count)
+            self.logger.record("custom/distance_mean", self.distance_sum / self.episode_count)
+        self._reset_counters()
+
+
+class BestModelCallback(BaseCallback):
+    """Save best model based on longest episode without falling."""
+
+    def __init__(self, save_dir: Path, verbose: int = 0):
+        super().__init__(verbose)
+        self.save_dir = save_dir
+        self.best_length = -1
+        self.best_survived = False
+
+    def _on_step(self) -> bool:
+        infos = self.locals.get("infos", [])
+        dones = self.locals.get("dones", [])
+        for info, done in zip(infos, dones):
+            if not done:
+                continue
+            fell = info.get("fell", False)
+            survived = not fell
+            length = int(info.get("step_count", 0))
+
+            should_update = False
+            if survived and not self.best_survived:
+                should_update = True
+            elif survived and self.best_survived and length > self.best_length:
+                should_update = True
+            elif not survived and not self.best_survived and length > self.best_length:
+                should_update = True
+
+            if should_update:
+                self.best_length = length
+                self.best_survived = survived
+                best_path = self.save_dir / "best_model"
+                self.model.save(best_path)
+                if self.verbose:
+                    status = "survived" if survived else "fell"
+                    print(f"✓ Best model updated ({status}, length={length})")
+        return True
+
+
+def cleanup_processes():
+    """Kill all ROS2/MuJoCo processes to prevent blocking."""
+    print("\n🧹 Cleaning up processes...")
+
+    processes_to_kill = [
+        "ros2",
+        "mujoco_simulator",
+        "wbc_controller",
+        "python3.*wbc_tuning_env",
+    ]
+
+    for proc_pattern in processes_to_kill:
+        try:
+            subprocess.run(
+                f"pkill -9 -f '{proc_pattern}'",
+                shell=True,
+                stderr=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+            )
+        except:
+            pass
+
+    time.sleep(2)
+    print("✓ Cleanup complete")
+
+
+def train_batch(
+    batch_steps: int,
+    model_path: Path = None,
+    save_dir: Path = None,
+    learning_rate: float = 3e-4,
+    device: str = "cuda",
+    total_timesteps_so_far: int = 0,
+    progress_bar: bool = False,
+):
+    """Train for a batch of steps, then save and cleanup."""
+
+    if model_path is not None:
+        model_path = Path(model_path)
+        if not model_path.exists() and model_path.suffix != ".zip":
+            zip_path = model_path.with_suffix(".zip")
+            if zip_path.exists():
+                model_path = zip_path
+
+    print("\n" + "=" * 60)
+    print(f"Training Batch: {batch_steps:,} steps")
+    print(f"Total timesteps so far: {total_timesteps_so_far:,}")
+    if model_path:
+        print(f"Resuming from: {model_path}")
+    print("=" * 60)
+
+    # Create environment
+    config_path = Path(__file__).parent.parent / "config" / "wbc_controller.yaml"
+    env = WbcTuningEnv(config_path=str(config_path), max_steps=1000)
+    env = Monitor(env)
+    env = DummyVecEnv([lambda: env])
+
+    # Load or create normalization
+    vec_normalize_path = save_dir / "vecnormalize_latest.pkl"
+    if vec_normalize_path.exists():
+        print(f"Loading VecNormalize from: {vec_normalize_path}")
+        env = VecNormalize.load(vec_normalize_path, env)
+        env.training = True
+        env.norm_reward = True
+    else:
+        env = VecNormalize(
+            env,
+            norm_obs=True,
+            norm_reward=True,
+            clip_obs=10.0,
+            clip_reward=10.0,
+        )
+    # Ensure env is reset before learning (new env each batch)
+    env.reset()
+
+    # Load or create model
+    if model_path and model_path.exists():
+        print(f"Loading model from: {model_path}")
+        model = PPO.load(
+            model_path,
+            env=env,
+            device=device,
+            force_reset=True,  # New env per batch needs reset
+            tensorboard_log=str(save_dir / "logs"),
+        )
+        # Manually set num_timesteps to continue from where we left off
+        model.num_timesteps = total_timesteps_so_far
+        model._total_timesteps = total_timesteps_so_far
+        print(f"✓ Continuing from timestep {total_timesteps_so_far:,}")
+    else:
+        print("Creating new model...")
+        model = PPO(
+            "MlpPolicy",
+            env,
+            learning_rate=learning_rate,
+            n_steps=2048,
+            batch_size=64,
+            n_epochs=10,
+            gamma=0.99,
+            gae_lambda=0.95,
+            clip_range=0.2,
+            ent_coef=0.01,
+            vf_coef=0.5,
+            max_grad_norm=0.5,
+            device=device,
+            verbose=1,
+            tensorboard_log=str(save_dir / "logs"),
+        )
+        model.num_timesteps = 0
+        model._total_timesteps = 0
+
+    # Use a stable TensorBoard run name across batches
+    tb_log_name = "PPO_robust"
+
+    # Callbacks
+    checkpoint_callback = CheckpointCallback(
+        save_freq=2048,  # Every rollout
+        save_path=str(save_dir / "checkpoints"),
+        name_prefix="wbc_ppo",
+        save_replay_buffer=False,
+        save_vecnormalize=True,
+    )
+
+    callback = CallbackList([
+        checkpoint_callback,
+        EpisodeInfoCallback(),
+        BestModelCallback(save_dir=save_dir, verbose=1),
+    ])
+
+    # Train
+    print(f"\n🚀 Starting training for {batch_steps:,} steps...")
+    start_time = time.time()
+
+    try:
+        model.learn(
+            total_timesteps=batch_steps,
+            callback=callback,
+            progress_bar=progress_bar,
+            reset_num_timesteps=False,  # Continue timestep count
+            tb_log_name=tb_log_name,
+        )
+    except KeyboardInterrupt:
+        print("\n⚠️  Training interrupted by user")
+    except Exception as e:
+        print(f"\n❌ Training error: {e}")
+
+    elapsed = time.time() - start_time
+
+    # Save final state
+    latest_model = save_dir / "wbc_ppo_latest"
+    model.save(latest_model)
+    latest_model_path = latest_model.with_suffix(".zip")
+    env.save(vec_normalize_path)
+
+    print(f"\n✓ Batch complete in {elapsed/60:.1f} minutes")
+    print(f"✓ Model saved: {latest_model_path}")
+
+    # Cleanup
+    env.close()
+    del model
+    del env
+
+    return latest_model_path
+
+
+def train_robust(
+    total_timesteps: int = 50_000,
+    batch_size: int = 5_000,
+    save_dir: str = "models/wbc_ppo_robust",
+    learning_rate: float = 3e-4,
+    device: str = "cuda",
+    progress_bar: bool = False,
+):
+    """Train robustly with automatic batching and cleanup."""
+
+    print("=" * 60)
+    print("🛡️  WBC PPO Robust Training - ROS2 Real Environment")
+    print("=" * 60)
+
+    # Check GPU
+    if device == "cuda" and not torch.cuda.is_available():
+        print("⚠️  WARNING: CUDA not available, falling back to CPU")
+        device = "cpu"
+    elif device == "cuda":
+        gpu_name = torch.cuda.get_device_name(0)
+        print(f"GPU: {gpu_name}")
+
+    print(f"Total timesteps: {total_timesteps:,}")
+    print(f"Batch size: {batch_size:,} steps")
+    print(f"Number of batches: {total_timesteps // batch_size}")
+    print(f"Environment: REAL WBC + ROS2 + MuJoCo")
+    print("=" * 60)
+
+    save_dir = Path(save_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+    (save_dir / "logs").mkdir(exist_ok=True)
+    (save_dir / "checkpoints").mkdir(exist_ok=True)
+
+    # Initial cleanup
+    cleanup_processes()
+
+    # Track progress
+    current_model = None
+    total_trained = 0
+    batch_num = 0
+
+    while total_trained < total_timesteps:
+        batch_num += 1
+        remaining = total_timesteps - total_trained
+        batch_steps = min(batch_size, remaining)
+
+        print(f"\n{'='*60}")
+        print(f"📦 Batch {batch_num}/{(total_timesteps + batch_size - 1) // batch_size}")
+        print(f"Progress: {total_trained:,}/{total_timesteps:,} ({100*total_trained/total_timesteps:.1f}%)")
+        print(f"{'='*60}")
+
+        try:
+            # Train this batch
+            current_model = train_batch(
+                batch_steps=batch_steps,
+                model_path=current_model,
+                save_dir=save_dir,
+                learning_rate=learning_rate,
+                device=device,
+                total_timesteps_so_far=total_trained,
+                progress_bar=progress_bar,
+            )
+
+            total_trained += batch_steps
+
+            # Cleanup between batches
+            cleanup_processes()
+
+            # Brief pause before next batch
+            if total_trained < total_timesteps:
+                print("\n⏸️  Pausing 5s before next batch...")
+                time.sleep(5)
+
+        except KeyboardInterrupt:
+            print("\n\n⚠️  Training stopped by user")
+            break
+        except Exception as e:
+            print(f"\n❌ Batch failed: {e}")
+            print("Cleaning up and continuing...")
+            cleanup_processes()
+            time.sleep(5)
+
+    # Final cleanup
+    cleanup_processes()
+
+    print("\n" + "=" * 60)
+    print("✅ Training Complete!")
+    print("=" * 60)
+    print(f"Total trained: {total_trained:,} steps")
+    print(f"Final model: {save_dir / 'wbc_ppo_latest.zip'}")
+    print(f"\nTo export config:")
+    print(f"  python3 export_config_direct.py {save_dir / 'wbc_ppo_latest'}")
+    print("=" * 60)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Robust WBC PPO training with real ROS2 environment"
+    )
+    parser.add_argument(
+        "--timesteps",
+        type=int,
+        default=50_000,
+        help="Total training timesteps (default: 50k)",
+    )
+    parser.add_argument(
+        "--batch",
+        type=int,
+        default=5_000,
+        help="Steps per batch before cleanup (default: 5k)",
+    )
+    parser.add_argument(
+        "--lr",
+        type=float,
+        default=3e-4,
+        help="Learning rate (default: 3e-4)",
+    )
+    parser.add_argument(
+        "--save-dir",
+        type=str,
+        default="models/wbc_ppo_robust",
+        help="Directory to save models",
+    )
+    parser.add_argument(
+        "--device",
+        type=str,
+        default="cuda",
+        choices=["cuda", "cpu"],
+        help="Device to use for training (default: cuda)",
+    )
+    parser.add_argument(
+        "--progress",
+        action="store_true",
+        help="Enable progress bar (may conflict with rich live display)",
+    )
+
+    args = parser.parse_args()
+
+    # Handle Ctrl+C gracefully
+    def signal_handler(sig, frame):
+        print("\n\n⚠️  Received interrupt signal, cleaning up...")
+        cleanup_processes()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+
+    train_robust(
+        total_timesteps=args.timesteps,
+        batch_size=args.batch,
+        save_dir=args.save_dir,
+        learning_rate=args.lr,
+        device=args.device,
+        progress_bar=args.progress,
+    )
+
+
+if __name__ == "__main__":
+    main()

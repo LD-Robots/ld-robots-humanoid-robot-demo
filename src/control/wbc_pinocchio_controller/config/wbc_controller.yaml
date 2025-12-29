@@ -50,15 +50,15 @@ wbc_controller:
     swing_hip_yaw: 0.0
 
     # Balance correction - AGGRESSIVE for dynamic walking
-    balance_kp_pitch: 2.5    # Higher gain for dynamic response
-    balance_kd_pitch: 0.8    # Strong damping for stability
-    balance_kp_roll: 3.0     # Higher roll gain
-    balance_kd_roll: 0.4     # Higher roll damping
+    balance_kp_pitch: 2.650750160217285    # Higher gain for dynamic response
+    balance_kd_pitch: 0.9191917777061462    # Strong damping for stability
+    balance_kp_roll: 3.691147804260254     # Higher roll gain
+    balance_kd_roll: 0.4751751124858856     # Higher roll damping
     balance_pitch_sign: -1.0 # FLIPPED: Inverted correction direction
-    imu_kp_pitch: 0.9       # Strong IMU feedback for fast tilt correction
-    imu_kd_pitch: 0.10       # Increased IMU damping
-    imu_kp_roll: 0.8         # Strong roll IMU feedback
-    imu_kd_roll: 0.10        # Increased IMU roll damping
+    imu_kp_pitch: 0.9975625276565552       # Strong IMU feedback for fast tilt correction
+    imu_kd_pitch: 0.1258784979581833       # Increased IMU damping
+    imu_kp_roll: 1.0279145240783691         # Strong roll IMU feedback
+    imu_kd_roll: 0.07954587042331696        # Increased IMU roll damping
     ankle_pitch_limit: 0.22  # More range for aggressive corrections
     hip_pitch_limit: 0.45    # More hip pitch range
     ankle_roll_limit: 0.02   # More roll range
@@ -82,4 +82,4 @@ wbc_controller:
     # Foot frames for support center
     left_foot_frame: left_ankle_roll_link
     right_foot_frame: right_ankle_roll_link
-    support_center_x_offset: -0.001 # NEGATIVE = Target CoM AHEAD of support (forward bias!)
+    support_center_x_offset: -0.0005 # NEGATIVE = Target CoM AHEAD of support (forward bias!)

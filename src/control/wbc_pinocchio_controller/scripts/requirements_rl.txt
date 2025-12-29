@@ -1,0 +1,21 @@
+# RL Training Requirements for WBC Parameter Tuning
+# Optimized for RTX 5070 Ti
+
+# Core RL library
+stable-baselines3[extra]==2.2.1
+
+# PyTorch with CUDA 12.1 support (RTX 5070 Ti compatible)
+torch==2.5.1
+torchvision==0.20.1
+
+# Gymnasium (new OpenAI Gym)
+gymnasium==0.29.1
+
+# Monitoring and logging
+tensorboard==2.18.0
+wandb==0.18.7  # Optional: for cloud experiment tracking
+
+# Additional utilities
+numpy>=1.24.0
+pyyaml>=6.0
+matplotlib>=3.7.0
