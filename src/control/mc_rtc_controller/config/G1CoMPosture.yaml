@@ -38,6 +38,7 @@ posture:
     right_wrist_yaw_joint: 1.0
 
 torsoOrientation:
+  bodyName: torso_ref
   stiffness: 0.0
   weight: 0.0  # DISABLED - let torso lean forward naturally when squatting
 

@@ -20,6 +20,7 @@ public:
 private:
   std::shared_ptr<mc_tasks::CoMTask> comTask_;
   std::shared_ptr<mc_tasks::OrientationTask> torsoOriTask_;
+  std::string torsoBodyName_ = "torso_link";
   std::shared_ptr<mc_tasks::lipm_stabilizer::StabilizerTask> stabilizerTask_;
 };
 

@@ -22,7 +22,7 @@ G1CoMPostureController::G1CoMPostureController(std::shared_ptr<mc_rbdyn::RobotMo
   qpsolver->addTask(postureTask);
 
   comTask_ = std::make_shared<mc_tasks::CoMTask>(robots(), robots().robotIndex());
-  torsoOriTask_ = std::make_shared<mc_tasks::OrientationTask>("torso_link", robots(), robots().robotIndex());
+  torsoOriTask_ = std::make_shared<mc_tasks::OrientationTask>(torsoBodyName_, robots(), robots().robotIndex());
   qpsolver->addTask(torsoOriTask_);
 
   // Default task gains; overridden in reset once config is loaded
@@ -128,15 +128,25 @@ void G1CoMPostureController::reset(const ControllerResetData & reset_data)
 
   double torsoStiffness = 2.0;
   double torsoWeight = 200.0;
+  std::string torsoBodyName = "torso_link";
   if(cfg.has("torsoOrientation"))
   {
     auto torsoCfg = cfg("torsoOrientation");
     torsoCfg("stiffness", torsoStiffness);
     torsoCfg("weight", torsoWeight);
+    torsoCfg("bodyName", torsoBodyName);
+  }
+  if(torsoBodyName != torsoBodyName_)
+  {
+    solver().removeTask(torsoOriTask_);
+    torsoOriTask_ = std::make_shared<mc_tasks::OrientationTask>(torsoBodyName, robots(), robots().robotIndex());
+    solver().addTask(torsoOriTask_);
+    torsoBodyName_ = torsoBodyName;
   }
   torsoOriTask_->stiffness(torsoStiffness);
   torsoOriTask_->weight(torsoWeight);
-  mc_rtc::log::info("[G1CoMPosture] Config torsoOrientation: stiffness={}, weight={}", torsoStiffness, torsoWeight);
+  mc_rtc::log::info("[G1CoMPosture] Config torsoOrientation: stiffness={}, weight={}, bodyName={}", torsoStiffness,
+                    torsoWeight, torsoBodyName_);
 
   stabilizerTask_->reset();
   auto stabilizerConfig = stabilizerTask_->config();
