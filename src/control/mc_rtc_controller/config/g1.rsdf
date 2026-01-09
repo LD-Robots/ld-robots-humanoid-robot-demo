@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<robot name="G1">
+  <planar_surface name="LeftFoot" link="left_ankle_roll_link">
+    <origin rpy="0.021 0.1 0.0" xyz="0.03 0 -0.04" />
+    <points>
+      <point xy="0.14 0.07" />
+      <point xy="0.14 -0.07" />
+      <point xy="-0.14 -0.07" />
+      <point xy="-0.14 0.07" />
+    </points>
+  </planar_surface>
+  <planar_surface name="RightFoot" link="right_ankle_roll_link">
+    <origin rpy="0.021 0.1 0.0" xyz="0.03 0 -0.04" />
+    <points>
+      <point xy="0.14 0.07" />
+      <point xy="0.14 -0.07" />
+      <point xy="-0.14 -0.07" />
+      <point xy="-0.14 0.07" />
+    </points>
+  </planar_surface>
+</robot>

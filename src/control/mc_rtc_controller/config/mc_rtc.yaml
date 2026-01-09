@@ -1,0 +1,25 @@
+# Configuration for G1 with custom CoM + Posture controller
+MainRobot: G1
+Enabled: [G1CoMPosture]
+IncludeHalfSitController: false
+ControllerModulePaths: ["../build"]
+
+ObserverPipelines:
+- name: MainPipeline
+  observers:
+    - type: Encoder
+      update: true
+      log: true
+      position: encoderValues
+      velocity: encoderFiniteDifferences
+
+# Logging
+Log:
+  Policy: threaded
+  Directory: /tmp
+
+# GUI Server
+GUIServer:
+  IPC: /tmp/mc_rtc_gui
+  PUB: tcp://*:4242
+  REP: tcp://*:4343

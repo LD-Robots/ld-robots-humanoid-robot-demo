@@ -1,0 +1,3 @@
+xmlModelPath: "../../../robot_description/humanoid_description/urdf/robot.xml"
+# NOTE: Currently not used by mc_mujoco; kept for future motor/torque-based control.
+pdGainsPath: "../pdgains/PDgains_sim.dat.NOTEXISTING"

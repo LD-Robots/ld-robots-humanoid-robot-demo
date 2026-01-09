@@ -1,0 +1,19 @@
+# mc_mujoco Configuration for G1 Robot
+#
+# NOTE: To enable real-time sync, run: mc_mujoco --sync
+# or use the script: ~/Documents/GitHub/mc_mujoco/run_g1_sync.sh
+
+# Visualization settings
+visualize:
+  collisions: true   # Enable group 0 (collision geometries)
+  visuals: true      # Enable group 1 (visual geometries)
+  contact-points: false
+  contact-forces: false
+  contact-split: false
+
+# Camera settings for better initial view
+camera:
+  distance: 3.0
+  azimuth: 180
+  elevation: -20
+  lookat: [0.0, 0.0, 0.75]

@@ -1,0 +1,38 @@
+# NOTE: Currently not used by mc_mujoco; kept for future motor/torque-based control.
+
+# Format: P_gain D_gain (one line per joint in order)
+
+# Legs (EXTREME - acts like locked joints)
+6000.0 60.0  # left_hip_pitch_joint
+6000.0 60.0  # left_hip_roll_joint
+6000.0 60.0  # left_hip_yaw_joint
+7000.0 70.0  # left_knee_joint
+8000.0 100.0  # left_ankle_pitch_joint
+8000.0 100.0  # left_ankle_roll_joint
+
+6000.0 600.0  # right_hip_pitch_joint
+6000.0 600.0  # right_hip_roll_joint
+6000.0 600.0  # right_hip_yaw_joint
+7000.0 70.0  # right_knee_joint
+8000.0 100.0  # right_ankle_pitch_joint
+8000.0 100.0  # right_ankle_roll_joint
+
+# Waist
+2000.0 40.0  # waist_yaw_joint
+
+# Arms (keep moderate for natural look)
+200.0 10.0   # left_shoulder_pitch_joint
+200.0 10.0   # left_shoulder_roll_joint
+200.0 10.0   # left_shoulder_yaw_joint
+200.0 10.0   # left_elbow_joint
+100.0 5.0   # left_wrist_roll_joint
+100.0 5.0   # left_wrist_pitch_joint
+100.0 5.0   # left_wrist_yaw_joint
+
+200.0 10.0   # right_shoulder_pitch_joint
+200.0 10.0   # right_shoulder_roll_joint
+200.0 10.0   # right_shoulder_yaw_joint
+200.0 10.0   # right_elbow_joint
+100.0 5.0   # right_wrist_roll_joint
+100.0 5.0   # right_wrist_pitch_joint
+100.0 5.0   # right_wrist_yaw_joint

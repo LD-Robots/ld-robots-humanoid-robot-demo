@@ -1,0 +1,56 @@
+# G1CoMPosture controller configuration
+com:
+  stiffness: 50.0
+  weight: 1000.0  # HIGH weight to force proper IK
+
+posture:
+  stiffness: 10.0
+  weight: 10.0
+  weights:
+    # Allow hip_pitch and knee to move freely for squatting
+    left_hip_pitch_joint: 0.05   # Very free for squat
+    left_hip_roll_joint: 5.0     # Keep fixed
+    left_hip_yaw_joint: 10.0     # BLOCK - no rotation
+    left_knee_joint: 0.01        # VERY free - allow deep bending
+    left_ankle_pitch_joint: 0.5  # More freedom
+    left_ankle_roll_joint: 10.0  # BLOCK - no rolling
+    right_hip_pitch_joint: 0.05  # Very free for squat
+    right_hip_roll_joint: 5.0    # Keep fixed
+    right_hip_yaw_joint: 10.0    # BLOCK - no rotation
+    right_knee_joint: 0.01       # VERY free - allow deep bending
+    right_ankle_pitch_joint: 0.5 # More freedom
+    right_ankle_roll_joint: 10.0 # BLOCK - no rolling
+    waist_yaw_joint: 20.0        # Keep waist very fixed
+    # Arms - ZERO weight to allow natural momentum compensation
+    left_shoulder_pitch_joint: 0.06  # low - can swing for balance
+    left_shoulder_roll_joint: 0.15   # Small weight to stay lateral
+    left_shoulder_yaw_joint: 0.1    # Very low
+    left_elbow_joint: 1.0           # Keep bent position
+    left_wrist_roll_joint: 1.0
+    left_wrist_pitch_joint: 1.0
+    left_wrist_yaw_joint: 1.0
+    right_shoulder_pitch_joint: 0.06 # low - can swing for balance
+    right_shoulder_roll_joint: 0.15  # Small weight to stay lateral
+    right_shoulder_yaw_joint: 0.1   # Very low
+    right_elbow_joint: 1.0          # Keep bent position
+    right_wrist_roll_joint: 1.0
+    right_wrist_pitch_joint: 1.0
+    right_wrist_yaw_joint: 1.0
+
+torsoOrientation:
+  stiffness: 0.0
+  weight: 0.0  # DISABLED - let torso lean forward naturally when squatting
+
+stabilizer:
+  enabled: true
+  contactDof: [0, 0, 1, 1, 1, 0]
+  leftFootSurface: LeftFoot
+  rightFootSurface: RightFoot
+  torsoBodyName: torso_link
+  constrainCoP: false
+  safety_tresholds:
+    MIN_DS_PRESSURE: 0.0
+    MIN_NET_TOTAL_FORCE_ZMP: 0.0
+  contactStiffness: [100, 100, 100, 100, 100, 100]
+  contactDamping:  [30, 30, 30, 30, 30, 30]
+  contactWeight: 500.0
